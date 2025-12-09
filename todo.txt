@@ -1,0 +1,131 @@
+# TODO.TXT - MASTER DEVELOPMENT PLAN
+# PROJECT: Case Worker: The Cream City Chronicles
+# VERSION: 2.0 (The Stateful/Sourdough Update)
+
+=============================================================================
+SECTION 1: CORE ARCHITECTURE & STATE
+[ASSIGNED TO: AGENT ALPHA (Systems Architect)]
+=============================================================================
+
+[ ] 1.1 IMPLEMENT GAMESTATE CLASS
+    - Create a central `GameState` object to persist world data.
+    - Track `turn_count`, `global_economy_modifier` (The Vibe Index).
+    - Implement `neighborhood_states` dictionary to track local events (e.g., "Street Festival in Riverwest").
+
+[ ] 1.2 REFACTOR PLAYER CLASS FOR STATEFULNESS
+    - Add `self.billable_hours` (Float) to track unpaid work.
+    - Add `self.client_relationships` (Dict) to track cooldowns and relationship levels per client.
+    - Ensure `inventory` can hold Object instances (Classes), not just Strings.
+
+[ ] 1.3 IMPLEMENT CLIENT PERSISTENCE
+    - Create a `ClientRoster` that saves state between visits.
+    - Implement `cooldown_turns`: Visiting a client locks them for 5 turns.
+    - Implement `mood_state`: Client stays in "Crisis" or "Chill" until interacted with.
+
+=============================================================================
+SECTION 2: ECONOMY & BUREAUCRACY
+[ASSIGNED TO: AGENT GAMMA (Mechanics Engineer)]
+=============================================================================
+
+[ ] 2.1 IMPLEMENT "RED TAPE" ECONOMY
+    - Remove cash rewards from Client encounters.
+    - Add logic: Solving a crisis grants `billable_hours` (Standard: 1.5, Hazard: 2.0).
+    - Add logic: `XP` is granted immediately, but Cash is deferred.
+
+[ ] 2.2 IMPLEMENT "THE TIMESHEET" MECHANIC
+    - Update "The Center" (Coggs Center) location menu.
+    - Add action: "Submit Timesheet".
+    - Logic: Convert `billable_hours` to `money` ($15/hr base).
+    - Logic: 20% chance of "Bureaucratic Rejection" (Player gets 50% pay due to "formatting errors").
+
+[ ] 2.3 IMPLEMENT "GLOBAL VIBE INDEX"
+    - Create `update_economy()` function that runs every morning.
+    - Variable: `Cheese_Index` (Affects food prices).
+    - Variable: `Pothole_Index` (Affects travel costs).
+    - Variable: `Gentrification_Meter` (Raises prices in Bay View/Third Ward).
+
+=============================================================================
+SECTION 3: NAVIGATION & WORLD
+[ASSIGNED TO: AGENT ALPHA & AGENT GAMMA]
+=============================================================================
+
+[ ] 3.1 THE COMMUTE ENGINE (Navigation 2.0)
+    - Convert map to a Weighted Graph.
+    - Create `travel_menu()` that offers modes of transport:
+        a. Bus ($2.25, High Stress Variance, Slow).
+        b. Uber (High Cost, Low Stress, Fast).
+        c. Hooptie (Free, Fast, 10% Breakdown Risk).
+        d. Walking (Free, Slow, Health/Stress impacts based on season).
+
+[ ] 3.2 MAP EXPANSION
+    - Update `milwaukee_map` to include "Polonia" (South Side).
+    - Move NPC `Chloe` residence from Riverwest to Polonia.
+    - Ensure proper neighbor connections (Polonia <-> Walker's Point <-> Bay View).
+
+=============================================================================
+SECTION 4: THE SENTIENT SOURDOUGH (COMPANION SYSTEM)
+[ASSIGNED TO: AGENT GAMMA (Mechanics) & AGENT BETA (Narrative)]
+=============================================================================
+
+[ ] 4.1 CREATE SENTIENTSOURDOUGH CLASS [AGENT GAMMA]
+    - Properties: `generation` (0-2), `form` (String), `stickiness` (Infinite).
+    - Logic: `is_cursed` flag preventing Drop/Sell actions.
+    - Logic: `mutate()` function triggers every 10-15 turns.
+
+[ ] 4.2 IMPLEMENT MUTATION MECHANICS [AGENT GAMMA]
+    - "The Puddle": 5% chance to slide to random neighbor node.
+    - "The Partner": Sets Player Status to "It's Complicated".
+    - "The Compass": Unlocks "The Bread Dimension" (Fast Travel point).
+    - "The Void": Enables spectral sight (Visual flavor text only).
+    - "The Homunculus": Consumes 1 food item from inventory daily.
+
+[ ] 4.3 IMPLEMENT MITOSIS & RECOMBINATION [AGENT GAMMA]
+    - Reproduction: Gen 0 produces 2 babies; Gen 1 produces 2 babies; Gen 2 is sterile.
+    - Recombination: If Inventory full OR 20 turns pass -> Merge all into "The Elder Loaf".
+    - "Elder Loaf" Effect: Weight 50lbs (Disable "Run" and "Fast Travel").
+    - Reset Quest: Deliver Elder Loaf to Liam (Bay View) to reset cycle.
+
+[ ] 4.4 SOURDOUGH NARRATIVE EVENTS [AGENT BETA]
+    - Write dialogue for "The Critic" (Insults player purchases).
+    - Write dialogue for "The Oracle" (Player understands pigeons/squirrels).
+    - Write "Date Night" scenario at The Vanguard (If Form == "The Partner").
+    - Write "Breakup Text" if mutation shifts away from "The Partner".
+
+=============================================================================
+SECTION 5: AI & COMBAT (SATIRE SYSTEM)
+[ASSIGNED TO: AGENT DELTA (AI Logic)]
+=============================================================================
+
+[ ] 5.1 IMPLEMENT BEHAVIOR TREES
+    - Create Enemy Types:
+        a. "The Stonewaller" (DMV Clerk) -> Uses Blocks/Delays.
+        b. "The Aggressor" (Kia Boy) -> High DPS.
+        c. "The Drainer" (Energy Vampire) -> Drains XP/Billable Hours.
+
+[ ] 5.2 IMPLEMENT SATIRICAL COMBAT MOVES
+    - Replace "Attack" with "Malicious Compliance" (Crit vs Stonewaller).
+    - Replace "Defend" with "The Ope" (Dodge).
+    - Replace "Magic" with "Jargon Overload" (Crit vs Drainer).
+    - Implement "Weaponized Apathy" (Crit vs Aggressor).
+
+=============================================================================
+SECTION 6: LORE & FLAVOR
+[ASSIGNED TO: AGENT BETA (Writer)]
+=============================================================================
+
+[ ] 6.1 THE PANTHEON INTEGRATION
+    - Hardcode "The Milverine" trigger: 5% chance on 0 HP/100 Stress to full heal.
+    - Hardcode "Kennedy" Summoning: Requires `Ancient Coffee` + `Form 1040-X` at Central Library.
+    - Write text for "Administrative Override" (Instant Win item).
+
+[ ] 6.2 NPC SCENARIOS
+    - Update `Chloe` (Polonia): Hacking the Basilica bells / Mayor's fridge.
+    - Update `Bobbie` (West Allis): Fighting the "Ticket Demon".
+    - Update `Mrs. Higgins` (Sherman Park): War with City Inspector.
+    - Update `Liam` (Bay View): Sourdough origin story.
+
+[ ] 6.3 CLIENT REWARDS
+    - Implement "Weird Gratitude" loot tables (No cash):
+        - Burner Phone (Chloe).
+        - Mystery Stew (Mrs. Higgins).
+        - Dale Earnhardt Keychain (Bobbie).
