@@ -56,6 +56,133 @@ landmark_menus = {
     }
 }
 
+# --- CLIENT SYSTEM ---
+class Client:
+    def __init__(self, name, location, chill_scenarios, crisis_scenarios, enemy_data):
+        self.name = name
+        self.location = location
+        self.chill_scenarios = chill_scenarios
+        self.crisis_scenarios = crisis_scenarios
+        self.enemy_data = enemy_data
+
+        # State
+        self.status = "Chill" # or "Crisis"
+        self.cooldown = 0
+        self.current_scenario_text = self._get_random_text(self.chill_scenarios)
+
+    def _get_random_text(self, scenarios):
+        # scenarios is a list of tuples (State, Text) or just strings?
+        # Looking at original code: ("Chill", "Text")
+        # So we just want the text part
+        return random.choice([s[1] for s in scenarios])
+
+    def update_turn(self):
+        if self.cooldown > 0:
+            self.cooldown -= 1
+            if self.cooldown == 0:
+                # Cooldown expired.
+                pass # Ready for new crisis?
+
+        # If chill and no cooldown, small chance to go crisis
+        if self.status == "Chill" and self.cooldown == 0:
+            if random.random() < 0.2: # 20% chance per turn
+                self.trigger_crisis()
+
+    def trigger_crisis(self):
+        self.status = "Crisis"
+        self.current_scenario_text = self._get_random_text(self.crisis_scenarios)
+
+    def resolve_crisis(self):
+        self.status = "Chill"
+        self.cooldown = random.randint(3, 6) # Safe for a few turns
+        self.current_scenario_text = self._get_random_text(self.chill_scenarios)
+
+    def get_info_line(self):
+        status_color = "CRITICAL" if self.status == "Crisis" else "STABLE"
+        cd_text = f"(CD: {self.cooldown})" if self.cooldown > 0 else "(READY)"
+        return f"[{status_color}] {self.name} ({self.location}) {cd_text}"
+
+class Caseload:
+    def __init__(self):
+        self.clients = {}
+        self._init_clients()
+
+    def _init_clients(self):
+        # Define clients here (moved from get_client_scenario)
+
+        # Chloe
+        self.clients["Chloe"] = Client(
+            "Chloe", "Polonia",
+            [("Chill", "Chloe is eating pierogis while coding on a laptop from 1999."),
+             ("Chill", "Chloe is in the basement trying to rewire the Basilica's bells.")],
+            [("Crisis", "Chloe accidentally hacked the Mayor's fridge and the Feds are outside."),
+             ("Crisis", "Chloe's homemade server farm melted the fuse box.")],
+            {"name": "Sentient Roomba", "hp": 50, "weakness": "Logic"}
+        )
+
+        # Bobbie
+        self.clients["Bobbie"] = Client(
+            "Bobbie", "West Allis",
+            [("Chill", "Bobbie is polishing his Dale Earnhardt commemorative plates."),
+             ("Chill", "Bobbie is asleep in a recliner from 1985.")],
+            [("Crisis", "Bobbie is fighting a 'Demon' in his closet (it's unpaid parking tickets)."),
+             ("Crisis", "Bobbie bought 400lbs of birdseed on QVC and is trapped.")],
+            {"name": "The Ticket Demon", "hp": 60, "weakness": "Paperwork"}
+        )
+
+        # Liam
+        self.clients["Liam"] = Client(
+            "Liam", "Bay View",
+            [("Chill", "Liam is waxing his mustache and listening to a band that doesn't exist yet."),
+             ("Chill", "Liam offers you a deconstructed coffee. It's just beans and hot water separately.")],
+            [("Crisis", "Liam's sourdough starter has grown too large and is consuming the kitchen."),
+             ("Crisis", "Liam is having a panic attack because he saw someone wearing cargo shorts.")],
+            {"name": "The Sourdough Monster", "hp": 45, "weakness": "Apathy"}
+        )
+
+        # Mrs. Higgins
+        self.clients["Mrs. Higgins"] = Client(
+            "Mrs. Higgins", "Sherman Park",
+            [("Chill", "Mrs. Higgins feeds you sweet potato pie until you can't move."),
+             ("Chill", "Mrs. Higgins is watching her stories (Soap Operas) at max volume.")],
+            [("Crisis", "The City hasn't fixed the pothole in front of her house. She is ready for war."),
+             ("Crisis", "Her grandson installed 'The TikTok' on her phone and she is confused.")],
+            {"name": "The City Inspector", "hp": 80, "weakness": "Paperwork"}
+        )
+
+        # Tyler
+        self.clients["Tyler"] = Client(
+            "Tyler", "East Side",
+            [("Chill", "Tyler is playing hacky-sack. It is 2025. You are confused."),
+             ("Chill", "Tyler is asleep in the library. He has drooled on a textbook.")],
+            [("Crisis", "Tyler has to write a 40-page thesis by tomorrow. He hasn't started."),
+             ("Crisis", "Tyler forgot to pay his tuition and is about to be expelled.")],
+            {"name": "The Looming Deadline", "hp": 40, "weakness": "Logic"}
+        )
+
+    def get_client(self, name):
+        return self.clients.get(name)
+
+    def update_all(self):
+        for client in self.clients.values():
+            client.update_turn()
+
+    def print_manifest(self):
+        print("\n" + "="*50)
+        print("COUNTY CASELOAD MANIFEST (CONFIDENTIAL)")
+        print("SYSTEM STATUS: OVERBURDENED")
+        print("="*50)
+        print(f"{'CLIENT':<15} | {'LOC':<15} | {'STATUS':<10} | {'NOTES'}")
+        print("-" * 70)
+        for name, c in self.clients.items():
+            status = c.status.upper()
+            note = "NEEDS VISIT" if status == "CRISIS" else "Monitoring..."
+            if c.cooldown > 0: note = f"Safe for {c.cooldown} turns"
+            print(f"{name:<15} | {c.location:<15} | {status:<10} | {note}")
+        print("="*50)
+        print("Use 'Visit Client' to intervene.\n")
+
+
 # --- PLAYER CLASS ---
 class Player:
     def __init__(self, name):
@@ -69,6 +196,7 @@ class Player:
         self.current_location = "Downtown"
         self.inventory = [] 
         self.blessed_by_milverine = False 
+        self.caseload = Caseload() # Player has a caseload now
 
     def is_alive(self):
         return self.hp > 0 and self.stress < self.max_stress
@@ -134,7 +262,8 @@ def summon_kennedy(player):
         print("\nShe vanishes into a cloud of toner.")
 
 # --- COMBAT / CRISIS SYSTEM ---
-def resolve_crisis(player, enemy):
+def resolve_crisis(player, client):
+    enemy = client.enemy_data
     print(f"\n--- CONFRONTING: {enemy['name']} ---")
     enemy_hp = enemy['hp']
     
@@ -147,6 +276,7 @@ def resolve_crisis(player, enemy):
             print(f"The {enemy['name']} is instantly filed away.")
             player.inventory.remove("Administrative Override")
             player.exp += 50
+            client.resolve_crisis() # Success
             return
 
     while enemy_hp > 0 and player.is_alive():
@@ -179,7 +309,9 @@ def resolve_crisis(player, enemy):
             if enemy_hp > 0:
                 print(f"> {enemy['name']} strikes back! Stress +10")
                 player.stress += 10
-                if player.check_milverine_save(): return
+                if player.check_milverine_save():
+                    client.resolve_crisis() # Saved by Milverine counts as resolved? Maybe not.
+                    return
         except: pass
 
     if player.is_alive():
@@ -188,58 +320,9 @@ def resolve_crisis(player, enemy):
         print(f"Billed {billable_hours} hours to The Center...")
         payment = economy.calculate_payout(billable_hours)
         player.exp += 50
-        player.modify_money(payment)
-        print(f"Received ${payment}.")
-
-# --- CLIENT & SCENARIO GENERATOR ---
-def get_client_scenario(client_name):
-    scenarios = {
-        "Chloe": [ # Now in Polonia
-            ("Chill", "Chloe is eating pierogis while coding on a laptop from 1999."),
-            ("Chill", "Chloe is in the basement trying to rewire the Basilica's bells."),
-            ("Crisis", "Chloe accidentally hacked the Mayor's fridge and the Feds are outside."),
-            ("Crisis", "Chloe's homemade server farm melted the fuse box.")
-        ],
-        "Bobbie": [
-            ("Chill", "Bobbie is polishing his Dale Earnhardt commemorative plates."),
-            ("Chill", "Bobbie is asleep in a recliner from 1985."),
-            ("Crisis", "Bobbie is fighting a 'Demon' in his closet (it's unpaid parking tickets)."),
-            ("Crisis", "Bobbie bought 400lbs of birdseed on QVC and is trapped.")
-        ],
-        "Liam": [
-            ("Chill", "Liam is waxing his mustache and listening to a band that doesn't exist yet."),
-            ("Chill", "Liam offers you a deconstructed coffee. It's just beans and hot water separately."),
-            ("Crisis", "Liam's sourdough starter has grown too large and is consuming the kitchen."),
-            ("Crisis", "Liam is having a panic attack because he saw someone wearing cargo shorts.")
-        ],
-        "Mrs. Higgins": [
-            ("Chill", "Mrs. Higgins feeds you sweet potato pie until you can't move."),
-            ("Chill", "Mrs. Higgins is watching her stories (Soap Operas) at max volume."),
-            ("Crisis", "The City hasn't fixed the pothole in front of her house. She is ready for war."),
-            ("Crisis", "Her grandson installed 'The TikTok' on her phone and she is confused.")
-        ],
-        "Tyler": [
-            ("Chill", "Tyler is playing hacky-sack. It is 2025. You are confused."),
-            ("Chill", "Tyler is asleep in the library. He has drooled on a textbook."),
-            ("Crisis", "Tyler has to write a 40-page thesis by tomorrow. He hasn't started."),
-            ("Crisis", "Tyler forgot to pay his tuition and is about to be expelled.")
-        ]
-    }
-    options = scenarios.get(client_name, [("Chill", "They are staring at a wall.")])
-    return random.choice(options)
-
-def get_enemy_for_client(client_name):
-    if client_name == "Chloe":
-        return {"name": "Sentient Roomba", "hp": 50, "weakness": "Logic"}
-    elif client_name == "Bobbie":
-        return {"name": "The Ticket Demon", "hp": 60, "weakness": "Paperwork"}
-    elif client_name == "Liam":
-        return {"name": "The Sourdough Monster", "hp": 45, "weakness": "Apathy"}
-    elif client_name == "Mrs. Higgins":
-        return {"name": "The City Inspector", "hp": 80, "weakness": "Paperwork"}
-    elif client_name == "Tyler":
-        return {"name": "The Looming Deadline", "hp": 40, "weakness": "Logic"}
-    return {"name": "Generic Bureaucracy", "hp": 30, "weakness": "Malicious Compliance"}
+        player.modify_money(loot)
+        print(f"You billed the state for ${loot}.")
+        client.resolve_crisis()
 
 # --- THE EXPANSIVE MAP (UPDATED) ---
 milwaukee_map = {
@@ -348,6 +431,9 @@ def main_game():
                 print("GAME OVER. You moved to Madison.")
                 break
 
+        # Update clients every turn
+        player.caseload.update_all()
+
         curr = milwaukee_map[player.current_location]
         print(f"\nLOC: {player.current_location.upper()} | HP: {player.hp} | STRESS: {player.stress}")
         if "Administrative Override" in player.inventory: print("STATUS: PROTECTED BY KENNEDY")
@@ -358,8 +444,9 @@ def main_game():
         print("2. Travel")
         print("3. Visit Landmark")
         print("4. Visit Client")
+        print("5. View Caseload (Client Info)")
         if "Ancient Coffee" in player.inventory and "Forbidden Form 1040-X" in player.inventory:
-            print("5. !!! SUMMON KENNEDY !!!")
+            print("6. !!! SUMMON KENNEDY !!!")
 
         choice = input("> ")
         
@@ -461,20 +548,21 @@ def main_game():
             except: pass
 
         elif choice == "4":
-            clients = curr['clients']
-            if not clients: print("No clients live here.")
+            clients_in_loc = curr['clients']
+            if not clients_in_loc: print("No clients live here.")
             else:
-                client = clients[0]
-                print(f"Visiting {client}...")
-                state, text = get_client_scenario(client)
-                print(f"\nSTATUS: {text}")
+                client_name = clients_in_loc[0]
+                client = player.caseload.get_client(client_name)
                 
-                if state == "Crisis":
+                print(f"Visiting {client.name}...")
+                print(f"\nSTATUS: {client.current_scenario_text}")
+
+                if client.status == "Crisis":
                     print("!!! THEY NEED HELP !!!")
                     print("1. Intervene (Start Crisis Mode)")
                     print("2. Walk away (Stress +10)")
                     if input("> ") == "1":
-                        resolve_crisis(player, get_enemy_for_client(client))
+                        resolve_crisis(player, client)
                     else:
                         player.stress += 10
                         print("You walk away, feeling the guilt of a thousand case workers.")
@@ -485,6 +573,9 @@ def main_game():
                         print("You vibe. It helps.")
 
         elif choice == "5":
+            player.caseload.print_manifest()
+
+        elif choice == "6":
             summon_kennedy(player)
             player.inventory.remove("Ancient Coffee")
             player.inventory.remove("Forbidden Form 1040-X")
