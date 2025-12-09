@@ -1,5 +1,6 @@
 import random
 import time
+import economy
 
 # --- THE SACRED TEXTS ---
 def play_intro():
@@ -14,6 +15,8 @@ def play_intro():
     time.sleep(2)
 
 # --- THE MENUS (SATIRE EDITION) ---
+el_trucko = economy.FoodTruck("El Trucko", {"Street Tacos": 3.50, "Elotes": 4.00, "Jarritos": 2.50})
+
 landmark_menus = {
     "Sobelman's": {
         "Bloody Masterpiece": (25.00, 10, 50, "A garnish that defies physics. Basically a salad with vodka."),
@@ -181,10 +184,12 @@ def resolve_crisis(player, enemy):
 
     if player.is_alive():
         print("Crisis Resolved.")
-        loot = random.randint(20, 50)
+        billable_hours = random.randint(3, 8)
+        print(f"Billed {billable_hours} hours to The Center...")
+        payment = economy.calculate_payout(billable_hours)
         player.exp += 50
-        player.modify_money(loot)
-        print(f"You billed the state for ${loot}.")
+        player.modify_money(payment)
+        print(f"Received ${payment}.")
 
 # --- CLIENT & SCENARIO GENERATOR ---
 def get_client_scenario(client_name):
@@ -241,7 +246,7 @@ milwaukee_map = {
     "Downtown": {
         "desc": "Skyscrapers, sadness, and the Library.",
         "neighbors": ["East Side", "Riverwest", "Walker's Point", "Third Ward", "Near West Side"],
-        "landmarks": ["The Safe House", "Central Library"],
+        "landmarks": ["The Safe House", "Central Library", "El Trucko"],
         "clients": []
     },
     "Third Ward": {
@@ -385,9 +390,17 @@ def main_game():
                 c = int(input("> ")) - 1
                 if 0 <= c < len(dests):
                     print("Waiting for the bus...")
+                    economy.update_market_vibes()
+
                     if random.random() > 0.8:
                         print("The bus is late. Obviously.")
                         player.stress += 5
+
+                    # Pothole Index affects travel comfort
+                    if economy.POTHOLE_INDEX > 1.5:
+                        print("Due to massive potholes, the bus bounces violently. +2 Stress")
+                        player.stress += 2
+
                     player.current_location = dests[c]
                     player.modify_money(-2.25)
             except: pass
@@ -397,17 +410,48 @@ def main_game():
             for i, l in enumerate(lms): print(f"{i+1}. {l}")
             try:
                 target = lms[int(input("> "))-1]
-                if target in landmark_menus:
+
+                if target == "El Trucko":
+                     el_trucko.update_hype()
+                     menu_items = el_trucko.display_menu() # returns list of (item, price)
+
+                     sel = int(input("Order > "))-1
+                     name, price = menu_items[sel]
+
+                     if player.money >= price:
+                         player.modify_money(-price)
+                         player.heal(10)
+                         player.relax(5)
+                         print(f"You ate {name}. It was trendy.")
+                     else:
+                         print("Too expensive for your budget.")
+
+                elif target in landmark_menus:
                     menu = landmark_menus[target]
                     print(f"--- {target.upper()} ---")
                     items = list(menu.items())
-                    for i, (k, v) in enumerate(items): print(f"{i+1}. {k} (${v[0]})")
+                    for i, (k, v) in enumerate(items):
+                        price = v[0]
+                        # Gentrification Meter affects Coffee
+                        if "Coffee" in k:
+                            price = round(price * economy.GENTRIFICATION_METER, 2)
+                        # Cheese Index affects any food with "Cheese", "Curd", "Pizza", "Burger"
+                        elif any(x in k for x in ["Cheese", "Curd", "Pizza", "Burger"]):
+                            price = round(price * economy.CHEESE_INDEX, 2)
+
+                        print(f"{i+1}. {k} (${price})")
                     
                     sel = int(input("Order > "))-1
                     name, vals = items[sel]
                     
-                    if player.money >= vals[0]:
-                        player.modify_money(-vals[0])
+                    price = vals[0]
+                    if "Coffee" in name:
+                        price = round(price * economy.GENTRIFICATION_METER, 2)
+                    elif any(x in name for x in ["Cheese", "Curd", "Pizza", "Burger"]):
+                        price = round(price * economy.CHEESE_INDEX, 2)
+
+                    if player.money >= price:
+                        player.modify_money(-price)
                         player.heal(vals[1])
                         player.relax(vals[2])
                         if "Coffee" in name or "Form" in name or "Override" in name:
