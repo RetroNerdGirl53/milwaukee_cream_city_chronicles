@@ -1,5 +1,5 @@
 """
-text_assets.py
+text_assets.py - The Narrative Database (Agent Zeta)
 
 This module contains only data structures (dictionaries) for flavor text,
 lore, and narrative assets. No game logic is included here.
@@ -63,6 +63,9 @@ RANDOM_ENCOUNTERS = [
     "Found Cheese Curd: It's on the ground, but it's still warm. Do you eat it?",
     "The Kia Boys: A car drives on the sidewalk. You lose 10 years of your life (Stress +10).",
     "Construction Season: The road is closed. It has been closed since the dawn of time. Detour.",
+    "The Milverine: You see him walking. He is shirtless. He is glorious.",
+    "Festival Parking: You pay $20 to park on someone's lawn.",
+    "Winter Parking Ban: You parked on the wrong side. Your car is gone.",
     "You see a 'Re-Elect Tom Barrett' sticker fading on a light pole.",
     "A seagull tries to steal your hot dog. It has a knife.",
     "Someone says 'Ope' as they bump into you. You both apologize for five minutes.",
