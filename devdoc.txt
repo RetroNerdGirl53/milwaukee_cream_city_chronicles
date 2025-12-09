@@ -1,0 +1,110 @@
+# DESIGN DOCUMENT: Case Worker - The Cream City Chronicles
+
+## 1. Core Philosophy & Tone
+* **Genre:** Satirical RPG / Survival Horror (Bureaucracy Edition).
+* **Vibe:** "Eldritch Bureaucracy." The system is a monster, the city is chaotic neutral, and the player is just trying to pay rent.
+* **The Golden Rule:** We mock the system, the weather, and the infrastructure, but we **respect the people** (mostly). The Milverine is God. Kennedy is the Devil/Savior.
+
+---
+
+## 2. The Pantheon (Lore)
+
+### The Milverine (The Paladin of Pavement)
+* **Role:** The Divine Protector.
+* **Lore:** He who walks shirtless in the winter. He represents physical endurance and the spirit of "Just Keep Moving."
+* **Mechanic:** *Divine Intervention.* If Player HP hits 0 or Stress hits 100, 5% chance he appears, nods, and fully heals the player.
+* **Flavor Text:** *"The clouds part. A brisk walker approaches. He is shirtless. He is glorious. He does not stop for the red light; the red light stops for him."*
+
+### Kennedy (The Sorceress of the System)
+* **Role:** The Eldritch Bureaucrat.
+* **Lore:** A multi-armed entity of pure administration. She exists in the "Cloud." She solves problems not by fixing them, but by filing them away so deep they no longer exist.
+* **Mechanic:** *The Summoning.* Requires "Ancient Coffee" and "Forbidden Form 1040-X" at the Central Library. Grants "Administrative Override" (Instant Kill).
+* **Flavor Text:** *"She floats above the desk, illuminated by the hum of fluorescent lights. 'Per my last email,' she chants, and reality bends."*
+
+---
+
+## 3. The Map & Neighborhood Logic
+*Instruction for Coders: Each location needs a Description, a Danger Level (1-5), Neighbors (connections), and a Landmark.*
+
+| Neighborhood | Description (Flavor Text) | Key Landmark | Unique Hazard |
+| :--- | :--- | :--- | :--- |
+| **Downtown** | "Skyscrapers, sadness, and wind tunnels. The heart of the beast." | Central Library (Kennedy Summoning) | **The Bridge:** Randomly opens, trapping you for 20 mins (+Stress). |
+| **Polonia** (South Side) | "The Basilica looms. Smells like incense, old bricks, and pierogis." | Basilica of St. Josaphat | **Bell Ringing:** Too loud. +2 Stress. |
+| **Riverwest** | "Alleys, art, anarchy. Everyone looks like they play bass." | Falcon Bowl | **The Vortex:** You stop for one drink, you stay for six. (-Time). |
+| **West Allis** | "The Holy Land. Questionable lawn ornaments and honest people." | West Allis Cheese Shoppe | **Nostalgia Trap:** You get stuck listening to a story about 1982. |
+| **Bay View** | "Hipster parents pushing $800 strollers to buy $9 donuts." | The Vanguard | **Price Shock:** Everything costs 20% more here. |
+| **Sherman Park** | "Historic boulevards and the best neighbors." | Sherman Phoenix | **Potholes:** Actual HP damage if you trip. |
+| **The Center** | "The Coggs Center. The fluorescent lights hum with malice." | Economic Support Window | **The Queue:** High Stress damage every turn. |
+
+---
+
+## 4. The Client Roster (Quests)
+*Instruction for Coders: Clients have two states: "Chill" (Low stakes, interaction) and "Crisis" (Combat encounter).*
+
+### 1. Chloe (Polonia - The Tech Witch)
+* **Vibe:** Cyberpunk meets Catholic School.
+* **Chill:** Eating dumplings, rewiring a 1990s GameBoy.
+* **Crisis:** "I tried to automate my taxes and accidentally hacked the Pentagon."
+* **Enemy:** *The Sentient Roomba* (Weakness: Logic).
+
+### 2. Bobbie (West Allis - The Collector)
+* **Vibe:** Hoarder with a heart of gold. Loves Dale Earnhardt.
+* **Chill:** Sleeping in a recliner, organizing VHS tapes.
+* **Crisis:** "The Demon in the Closet won't let me get my winter coat." (The Demon is a pile of unpaid parking tickets).
+* **Enemy:** *The Ticket Demon* (Weakness: Paperwork).
+
+### 3. Liam (Bay View - The Artisan)
+* **Vibe:** Mustache wax and pretension.
+* **Chill:** Fermenting kim-chi in a bathtub.
+* **Crisis:** "My sourdough starter has gained sentience and is holding the cat hostage."
+* **Enemy:** *The Yeast Beast* (Weakness: Apathy - just ignore it and it dies).
+
+### 4. Mrs. Higgins (Sherman Park - The Matriarch)
+* **Vibe:** Sweet until crossed.
+* **Chill:** Feeding you pie.
+* **Crisis:** The City Inspector is trying to fine her for her porch steps.
+* **Enemy:** *The Inspector* (Weakness: Bureaucratic Jargon).
+
+---
+
+## 5. The Combat System (Satire)
+*Instruction for Coders: Do not use "Attack" or "Defense." Use the following terminology.*
+
+**Player Moves:**
+1.  **Malicious Compliance:** "You follow the rules so precisely it causes the enemy to crash." (Crit vs. Bureaucracy types).
+2.  **Weaponized Apathy:** "You stare blankly. The enemy feels awkward and leaves." (Crit vs. Emotional types).
+3.  **Jargon Overload:** "You say 'Synergy', 'Circle Back', and 'Touch Base' rapidly." (Crit vs. Corporate types).
+4.  **The "Ope":** (Defensive Move) "You say 'Ope, just gonna sneak past ya.' Dodge chance increased."
+
+**Enemy Moves:**
+1.  **"Please Hold":** Stuns the player for 1 turn.
+2.  **"Fax Required":** heavy Stress damage.
+3.  **"Passive Aggressive Note":** Low damage, but lowers player Morale.
+
+---
+
+## 6. The Economy & Items (Menu)
+*Instruction for Coders: Items must heal HP or Stress. Some have side effects.*
+
+* **The "Closer" (Wolski's):**
+    * *Effect:* +20 HP, +10 Stress Relief.
+    * *Text:* "You get a sticker. You feel validated."
+* **Rib Tips (Speed Queen):**
+    * *Effect:* +50 HP (Massive heal).
+    * *Text:* "The smoke smell clings to your clothes for days. It is a shield against despair."
+* **Shot of Malort (The Vanguard):**
+    * *Effect:* -5 HP (Tastes bad), -30 Stress (Numbing).
+    * *Text:* "It tastes like a burning tire. You hate it. You order another."
+* **Tumbleweave (Random Item Drop):**
+    * *Effect:* Use in combat to confuse enemies.
+    * *Text:* "Majestic. Aerodynamic. Mysterious."
+
+---
+
+## 7. Random Encounters (The "Milwaukee Randomizer")
+*Instruction for Coders: These trigger during travel.*
+
+1.  **The Kia Boys:** "A car drives on the sidewalk. You lose 10 years of your life (Stress +10)."
+2.  **Construction Season:** "The road is closed. It has been closed since the dawn of time. Detour."
+3.  **The Bridge Opening:** "You are stuck for 15 minutes. You contemplate jumping."
+4.  **Found Cheese Curd:** "It's on the ground, but it's still warm. Do you eat it?" (50% chance of HP gain, 50% chance of sickness).
