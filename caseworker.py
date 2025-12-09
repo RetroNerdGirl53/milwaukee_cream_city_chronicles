@@ -1,5 +1,6 @@
 import random
 import time
+import pantheon
 
 # --- THE SACRED TEXTS ---
 def play_intro():
@@ -71,17 +72,8 @@ class Player:
         return self.hp > 0 and self.stress < self.max_stress
 
     def check_milverine_save(self):
-        if (self.stress >= self.max_stress or self.hp <= 0) and self.blessed_by_milverine:
-            print("\n" + "!"*50)
-            print("THE MILVERINE INTERVENES.")
-            print("He power-walks past you, absorbing your burnout into his aura.")
-            print("You are healed. He does not break stride.")
-            print("!"*50)
-            self.hp = 50
-            self.stress = 0
-            self.blessed_by_milverine = False
-            return True
-        return False
+        # Delegate to pantheon module
+        return pantheon.check_milverine_intervention(self)
 
     def modify_money(self, amount):
         self.money += amount
@@ -94,41 +86,6 @@ class Player:
 
     def relax(self, amount):
         self.stress = max(0, self.stress - amount)
-
-# --- KENNEDY'S DOMAIN ---
-def summon_kennedy(player):
-    """The Ritual to summon the Sorceress."""
-    print("\n...You arrange the Ancient Coffee and the Forbidden Forms...")
-    print("You chant the three sacred words: 'PER. MY. EMAIL.'")
-    time.sleep(2)
-    
-    print("\n" + "~"*50)
-    print("THE REALITY TEARS OPEN.")
-    print("Kennedy appears. She has six arms: two typing, two holding phones, two shrugging.")
-    print("\nKENNEDY: 'I am the Healer of This Whole Ass Shit Show. Make it quick.'")
-    print("~"*50)
-    
-    print("1. 'Override this Crisis.' (Get 'Admin Override' item, Cost: 50 XP)")
-    print("2. 'Make me numb.' (Set Stress to 0, Cost: $20)")
-    print("3. 'Just vibes.' (Leave)")
-    
-    choice = input("> ")
-    if choice == "1":
-        if player.exp >= 50:
-            player.exp -= 50
-            player.inventory.append("Administrative Override")
-            print("\nKennedy stamps your forehead. You acquired: [Administrative Override].")
-        else:
-            print("\nKennedy: 'You lack experience. Go file more papers.'")
-    elif choice == "2":
-        if player.money >= 20:
-            player.modify_money(-20)
-            player.stress = 0
-            print("\nShe mutes your emotions. It's peaceful.")
-        else:
-            print("\nKennedy: 'Even the void requires a co-pay.'")
-    else:
-        print("\nShe vanishes into a cloud of toner.")
 
 # --- COMBAT / CRISIS SYSTEM ---
 def resolve_crisis(player, enemy):
@@ -364,6 +321,8 @@ def main_game():
                 print("\n*** THE MILVERINE WALKS PAST. YOU ARE BLESSED. ***")
                 player.blessed_by_milverine = True
                 player.stress = 0
+            elif roll >= 85:
+                pantheon.invoke_freeway(player)
             elif roll < 10:
                 print("\n*** ENCOUNTER: TUMBLEWEAVE ***")
                 print("A weave blows past you like a western movie. It's majestic.")
@@ -441,9 +400,9 @@ def main_game():
                         print("You vibe. It helps.")
 
         elif choice == "5":
-            summon_kennedy(player)
-            player.inventory.remove("Ancient Coffee")
-            player.inventory.remove("Forbidden Form 1040-X")
+            # Delegate to pantheon module
+            pantheon.summon_kennedy(player)
+            # Items are removed inside pantheon.summon_kennedy if successful
 
 if __name__ == "__main__":
     main_game()
