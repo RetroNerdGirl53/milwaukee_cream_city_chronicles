@@ -6,18 +6,25 @@ import economy
 import combat
 from engine import Player, GameState, Client, Item
 from world_data import MILWAUKEE_MAP, TravelCost
-from text_assets import CLIENT_SCENARIOS, LANDMARK_FLAVOR, RANDOM_ENCOUNTERS
+from text_assets import CLIENT_SCENARIOS, LANDMARK_FLAVOR, RANDOM_ENCOUNTERS, ASCII_ART
+from graphics import Colors, clear_screen, typewriter_print, print_centered, print_banner, print_separator
 
 # --- THE SACRED TEXTS ---
 def play_intro():
-    print("\n" + "*"*70)
-    print("IN THE BEGINNING, THERE WAS THE MILVERINE.")
-    print("He walked the 414 when others drove. He wore the shorts in January.")
-    print("AND IN THE SHADOWS, THERE WAS KENNEDY.")
-    print("The Sorceress of the System. The High Priestess of 'Per My Last Email'.")
-    print("\nWELCOME TO MILWAUKEE.")
-    print("Where the beer is cold, the cheese is loud, and the bureaucracy is hungry.")
-    print("*"*70 + "\n")
+    clear_screen()
+    print(Colors.PINK + ASCII_ART['TITLE'] + Colors.RESET)
+    time.sleep(1)
+
+    print_separator(color=Colors.PINK)
+    typewriter_print("IN THE BEGINNING, THERE WAS THE MILVERINE.", color=Colors.CYAN)
+    typewriter_print("He walked the 414 when others drove. He wore the shorts in January.", color=Colors.WHITE)
+    print("")
+    typewriter_print("AND IN THE SHADOWS, THERE WAS KENNEDY.", color=Colors.MAGENTA)
+    typewriter_print("The Sorceress of the System. The High Priestess of 'Per My Last Email'.", color=Colors.WHITE)
+    print("")
+    print_banner("WELCOME TO MILWAUKEE", color=Colors.HOT_PINK)
+    typewriter_print("Where the beer is cold, the cheese is loud, and the bureaucracy is hungry.", color=Colors.TEAL)
+    print_separator(color=Colors.PINK)
     time.sleep(2)
 
 # --- THE MENUS (SATIRE EDITION) ---
@@ -128,6 +135,9 @@ def handle_crisis(player, client):
     """
     Handles the crisis combat loop.
     """
+    clear_screen()
+    print(Colors.RED + ASCII_ART['COMBAT'] + Colors.RESET)
+
     enemy_data = get_client_enemy_data(client.name)
     enemy = combat.Enemy(enemy_data["name"], combat.Enemy.TYPE_STONEWALLER, enemy_data["hp"])
     # Determine enemy type based on weakness/lore (Satire)
@@ -135,15 +145,15 @@ def handle_crisis(player, client):
     elif enemy_data['weakness'] == 'Apathy': enemy.type = combat.Enemy.TYPE_AGGRESSOR # Emotionals hate apathy
     elif enemy_data['weakness'] == 'Paperwork': enemy.type = combat.Enemy.TYPE_DRAINER # Paperwork drains you
 
-    print(f"\n--- CONFRONTING: {enemy.name} ---")
+    print_banner(f"CONFRONTING: {enemy.name}", color=Colors.RED)
     
     # Kennedy Check
     if player.has_item("Administrative Override"):
-        print("\n[?] Invoke Kennedy's ADMINISTRATIVE OVERRIDE? (y/n)")
+        print(Colors.style("\n[?] Invoke Kennedy's ADMINISTRATIVE OVERRIDE? (y/n)", color=Colors.MAGENTA))
         if input("> ") == "y":
-            print("\n*** KENNEDY'S WRATH ***")
-            print("A giant spectral rubber stamp descends from the sky.")
-            print("IT READS: 'NOT MY PROBLEM'.")
+            print(Colors.MAGENTA + "\n*** KENNEDY'S WRATH ***" + Colors.RESET)
+            typewriter_print("A giant spectral rubber stamp descends from the sky.", color=Colors.PINK)
+            print(Colors.style("IT READS: 'NOT MY PROBLEM'.", styles=[Colors.BOLD, Colors.UNDERLINE]))
             print(f"The {enemy.name} is instantly filed away.")
             player.remove_item("Administrative Override")
             player.exp += 50
@@ -152,15 +162,15 @@ def handle_crisis(player, client):
 
     # Combat Loop
     while enemy.is_alive() and player.is_alive():
-        print(f"Enemy HP: {enemy.hp} | Your Stress: {player.stress}")
-        print("1. Malicious Compliance (Use rules against them)")
-        print("2. Weaponized Apathy (Stare blankly)")
-        print("3. Bureaucratic Jargon (Confuse them)")
-        print("4. 'The Ope' (Dodge)")
-        print("5. Contextual Move")
+        print(f"{Colors.RED}Enemy HP: {enemy.hp}{Colors.RESET} | {Colors.MAGENTA}Your Stress: {player.stress}{Colors.RESET}")
+        print(Colors.CYAN + "1. Malicious Compliance" + Colors.WHITE + " (Use rules against them)")
+        print(Colors.CYAN + "2. Weaponized Apathy" + Colors.WHITE + " (Stare blankly)")
+        print(Colors.CYAN + "3. Bureaucratic Jargon" + Colors.WHITE + " (Confuse them)")
+        print(Colors.CYAN + "4. 'The Ope'" + Colors.WHITE + " (Dodge)")
+        print(Colors.CYAN + "5. Contextual Move" + Colors.RESET)
         
         try:
-            choice = input("> ")
+            choice = input(Colors.YELLOW + "> " + Colors.RESET)
             move = ""
             if choice == "1": move = combat.MOVE_MALICIOUS_COMPLIANCE
             elif choice == "2": move = combat.MOVE_WEAPONIZED_APATHY
@@ -169,39 +179,55 @@ def handle_crisis(player, client):
             elif choice == "5": move = combat.MOVE_CONTEXTUAL
             
             if move:
+                print_separator(color=Colors.BRIGHT_BLACK)
+                # We should capture output or just let it print. Since combat.resolve_turn prints, we rely on that.
+                # Ideally we'd wrap combat.resolve_turn to be prettier, but instruction said "DO not change functionality".
+                # We will rely on terminal colors affecting those prints if we could, but we can't easily inject colors into `combat.py`
+                # without editing it. The user said "DO not change functionality... Just make it pretty."
+                # Editing `combat.py` solely for print statements is arguably "making it pretty".
+                # But let's stick to caseworker.py wrapper for now.
                 combat.resolve_turn(player, enemy, move)
+                print_separator(color=Colors.BRIGHT_BLACK)
 
                 # Check for Milverine Save if player died/stressed out in that turn
                 if not player.is_alive():
                      if pantheon.check_milverine_intervention(player):
                          # If saved, combat might continue or end?
                          # Let's say it gives you a second wind.
-                         print("You get back up!")
+                         print(Colors.style("You get back up!", color=Colors.GREEN, styles=[Colors.BOLD]))
             else:
-                print("You stumbled and did nothing.")
+                print(Colors.RED + "You stumbled and did nothing." + Colors.RESET)
         except Exception as e:
             print(f"Error: {e}")
 
     if player.is_alive():
-        print("Crisis Resolved.")
+        print_banner("Crisis Resolved.", color=Colors.GREEN)
         billable = random.randint(3, 8)
-        print(f"Billed {billable} hours to The Center... (Submit Timesheet at The Center to get paid)")
+        print(f"Billed {Colors.YELLOW}{billable} hours{Colors.RESET} to The Center... (Submit Timesheet at The Center to get paid)")
         player.add_billable_hours(billable)
         player.exp += 50
         client.set_mood("Chill")
         # Set cooldown
         player.update_client_relationship(client.name, trust_change=1, set_cooldown=5)
+        input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
 def main_game():
     play_intro()
-    p_name = input("Enter Case Worker Name: ")
+    print(Colors.PINK + "Enter Case Worker Name: " + Colors.RESET, end="")
+    p_name = input()
     player = Player(p_name)
     game_state = init_game_state(player)
     
     while True:
         if not player.is_alive():
-            if not pantheon.check_milverine_intervention(player):
-                print("GAME OVER. You moved to Madison.")
+            if pantheon.check_milverine_intervention(player):
+                # Milverine saved us!
+                print(Colors.style("\n*** THE MILVERINE SAVED YOU! ***", color=Colors.CYAN, styles=[Colors.BOLD]))
+                input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
+            else:
+                # Actually dead
+                clear_screen()
+                print(Colors.RED + ASCII_ART['GAME_OVER'] + Colors.RESET)
                 break
 
         # Update World State
@@ -222,65 +248,90 @@ def main_game():
             player.current_location = "Downtown"
             continue
 
-        print(f"\nLOC: {curr_loc_name.upper()} | HP: {player.hp} | STRESS: {player.stress} | MONEY: ${player.money:.2f}")
-        if player.has_item("Administrative Override"): print("STATUS: PROTECTED BY KENNEDY")
-        if player.blessed_by_milverine: print("STATUS: BLESSED BY THE MILVERINE")
+        # --- PRETTY UI HEADER ---
+        clear_screen()
+        print_separator(char="~", color=Colors.PINK)
+        header = f"LOCATION: {curr_loc_name.upper()}"
+        print_centered(header, color=Colors.HOT_PINK)
+        print_separator(char="~", color=Colors.PINK)
         
-        print(f"DESC: {curr_loc_data['description']}")
-        print("1. Explore (Risk Encounter)")
-        print("2. Travel")
-        print("3. Visit Landmark")
-        print("4. Visit Client")
-        print("5. View Caseload")
-        print("6. Inventory")
+        # Stats Bar
+        hp_color = Colors.GREEN if player.hp > 20 else Colors.RED
+        stress_color = Colors.MAGENTA if player.stress < 50 else Colors.RED
+
+        stats = f"{Colors.WHITE}HP: {hp_color}{player.hp}{Colors.RESET} | {Colors.WHITE}STRESS: {stress_color}{player.stress}{Colors.RESET} | {Colors.WHITE}MONEY: {Colors.YELLOW}${player.money:.2f}{Colors.RESET}"
+        print_centered(stats)
+
+        if player.has_item("Administrative Override"):
+            print_centered("STATUS: PROTECTED BY KENNEDY", color=Colors.MAGENTA)
+        if player.blessed_by_milverine:
+            print_centered("STATUS: BLESSED BY THE MILVERINE", color=Colors.CYAN)
+
+        print_separator(color=Colors.BRIGHT_BLACK)
+        print(Colors.TEAL + f"DESC: {curr_loc_data['description']}" + Colors.RESET)
+        print_separator(color=Colors.BRIGHT_BLACK)
+
+        print(Colors.PINK + "ACTIONS:" + Colors.RESET)
+        print(f" {Colors.CYAN}1.{Colors.RESET} Explore (Risk Encounter)")
+        print(f" {Colors.CYAN}2.{Colors.RESET} Travel")
+        print(f" {Colors.CYAN}3.{Colors.RESET} Visit Landmark")
+        print(f" {Colors.CYAN}4.{Colors.RESET} Visit Client")
+        print(f" {Colors.CYAN}5.{Colors.RESET} View Caseload")
+        print(f" {Colors.CYAN}6.{Colors.RESET} Inventory")
 
         # Special Location Actions
         if curr_loc_name == "The Center":
-            print("7. Submit Timesheet")
+            print(f" {Colors.CYAN}7.{Colors.RESET} Submit Timesheet")
 
         # Kennedy Summon check
         if player.has_item("Ancient Coffee") and player.has_item("Forbidden Form 1040-X") and curr_loc_name == "Downtown": # Assuming Library is Downtown
-             print("8. !!! SUMMON KENNEDY !!!")
+             print(f" {Colors.MAGENTA}8. !!! SUMMON KENNEDY !!!{Colors.RESET}")
 
-        choice = input("> ")
+        print("")
+        choice = input(Colors.PINK + "> " + Colors.RESET)
         
         if choice == "1":
             roll = random.randint(1, 100)
             if roll >= 95: 
-                print("\n*** THE MILVERINE WALKS PAST. YOU ARE BLESSED. ***")
+                print(Colors.CYAN + ASCII_ART['MILVERINE'] + Colors.RESET)
+                print(Colors.style("\n*** THE MILVERINE WALKS PAST. YOU ARE BLESSED. ***", color=Colors.CYAN, styles=[Colors.BOLD]))
                 player.blessed_by_milverine = True
                 player.stress = 0
             elif roll >= 85:
                 pantheon.invoke_freeway(player)
             elif roll < 20:
                 encounter = random.choice(RANDOM_ENCOUNTERS)
-                print(f"\n*** ENCOUNTER ***\n{encounter}")
+                print_banner("ENCOUNTER", color=Colors.RED)
+                print(encounter)
                 if "Kia Boys" in encounter: player.stress += 10
                 if "Bridge" in encounter: player.stress += 5
             else:
                 print(f"You walk through {curr_loc_name}. Nothing weird happens (yet).")
 
+            input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
+
         elif choice == "2":
             dests = curr_loc_data['neighbors']
-            for i, d in enumerate(dests): print(f"{i+1}. {d}")
+            print(Colors.PINK + "DESTINATIONS:" + Colors.RESET)
+            for i, d in enumerate(dests): print(f" {Colors.CYAN}{i+1}.{Colors.RESET} {d}")
             try: 
-                c_input = input("Destination > ")
+                c_input = input(Colors.PINK + "Destination > " + Colors.RESET)
                 c = int(c_input) - 1
                 if 0 <= c < len(dests):
                     target = dests[c]
-                    print("Choose Transport:")
+                    print(Colors.PINK + "CHOOSE TRANSPORT:" + Colors.RESET)
                     modes = list(TravelCost.MODES.keys())
                     for i, m in enumerate(modes):
                         cost_info = TravelCost.MODES[m]
-                        print(f"{i+1}. {m} (${cost_info['cost']}) - {cost_info['description']}")
+                        print(f" {Colors.CYAN}{i+1}.{Colors.RESET} {m} ({Colors.YELLOW}${cost_info['cost']}{Colors.RESET}) - {cost_info['description']}")
 
-                    m_idx = int(input("Transport > ")) - 1
+                    m_idx = int(input(Colors.PINK + "Transport > " + Colors.RESET)) - 1
                     mode_name = modes[m_idx]
                     mode_data = TravelCost.MODES[mode_name]
 
                     # Logic
                     if player.money < mode_data['cost']:
-                        print("Not enough money.")
+                        print(Colors.RED + "Not enough money." + Colors.RESET)
                     else:
                         player.modify_money(-mode_data['cost'])
                         stress_add = random.randint(mode_data['stress_min'], mode_data['stress_max'])
@@ -288,7 +339,7 @@ def main_game():
                         # Apply Global Modifiers
                         economy.update_market_vibes()
                         if economy.POTHOLE_INDEX > 1.5 and mode_name in ["Bus", "Uber", "Hooptie"]:
-                             print("The potholes are terrible today. +2 Stress.")
+                             print(Colors.RED + "The potholes are terrible today. +2 Stress." + Colors.RESET)
                              stress_add += 2
 
                         player.stress += stress_add
@@ -296,7 +347,7 @@ def main_game():
 
                         if mode_name == "Hooptie":
                             if random.random() < mode_data['breakdown_chance']:
-                                print("The car broke down. You have to walk the rest of the way. +10 Stress.")
+                                print(Colors.RED + "The car broke down. You have to walk the rest of the way. +10 Stress." + Colors.RESET)
                                 player.stress += 10
 
                         player.current_location = target
@@ -305,35 +356,39 @@ def main_game():
             except Exception as e:
                 print(f"An error occurred during travel: {e}")
 
+            input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
+
         elif choice == "3":
             # Landmarks
             # Note: world_data structure for landmark is a string "landmark", not a list.
             lm = curr_loc_data.get('landmark')
             if not lm:
                 print("No major landmark here.")
+                input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
             else:
-                print(f"Landmark: {lm}")
+                print_banner(lm, color=Colors.TEAL)
                 desc = LANDMARK_FLAVOR.get(lm, "It's a place.")
                 print(desc)
+                print("")
 
                 # Check for menu
                 if lm == "El Trucko":
                      el_trucko.update_hype()
                      menu_items = el_trucko.display_menu()
                      try:
-                         sel = int(input("Order > "))-1
+                         sel = int(input(Colors.PINK + "Order > " + Colors.RESET))-1
                          name, price = menu_items[sel]
                          if player.money >= price:
                              player.modify_money(-price)
                              player.heal(10)
                              player.relax(5)
-                             print(f"You ate {name}.")
-                         else: print("Too expensive.")
+                             print(Colors.GREEN + f"You ate {name}." + Colors.RESET)
+                         else: print(Colors.RED + "Too expensive." + Colors.RESET)
                      except: pass
 
                 elif lm in landmark_menus:
                     menu = landmark_menus[lm]
-                    print(f"--- {lm.upper()} ---")
+                    print(Colors.PINK + "--- MENU ---" + Colors.RESET)
                     items = list(menu.items())
                     for i, (k, v) in enumerate(items):
                         price = v[0]
@@ -344,10 +399,10 @@ def main_game():
                         elif any(x in k for x in ["Cheese", "Curd", "Pizza", "Burger"]):
                             price = round(price * economy.CHEESE_INDEX, 2)
 
-                        print(f"{i+1}. {k} (${price:.2f})")
+                        print(f" {Colors.CYAN}{i+1}.{Colors.RESET} {k} ({Colors.YELLOW}${price:.2f}{Colors.RESET})")
                     
                     try:
-                        sel = int(input("Order > "))-1
+                        sel = int(input(Colors.PINK + "Order > " + Colors.RESET))-1
                         name, vals = items[sel]
                         price = vals[0]
                         # Re-calc price for transaction
@@ -365,12 +420,14 @@ def main_game():
                                 # Create Item object
                                 new_item = Item(name, vals[3], price, vals[1], vals[2])
                                 player.add_item(new_item)
-                            print(f"You consumed {name}. {vals[3]}")
-                        else: print("Card Declined.")
+                            print(Colors.GREEN + f"You consumed {name}. {vals[3]}" + Colors.RESET)
+                        else: print(Colors.RED + "Card Declined." + Colors.RESET)
                     except ValueError:
                          print("Invalid order.")
                     except IndexError:
                          print("Item not found.")
+
+                input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
         elif choice == "4":
             # Visit Client
@@ -380,6 +437,7 @@ def main_game():
 
             if not clients_here:
                 print("No clients live here.")
+                input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
             else:
                 client = clients_here[0] # Assuming one per loc for now
                 print(f"Visiting {client.name}...")
@@ -388,45 +446,53 @@ def main_game():
                 cd = player.get_client_cooldown(client.name)
                 if cd > 0:
                     print(f"{client.name} is tired of you. Come back in {cd} turns.")
+                    input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
                 else:
                     # Get Scenario Text
                     scenarios = get_client_scenarios(client.name, client.mood)
                     text = random.choice(scenarios) if scenarios else "They are doing nothing."
-                    print(f"\nSTATUS: {text}")
 
                     if client.mood == "Crisis":
-                        print("!!! THEY NEED HELP !!!")
-                        print("1. Intervene (Start Crisis Mode)")
-                        print("2. Walk away (Stress +10)")
-                        if input("> ") == "1":
+                        print(Colors.RED + f"\nSTATUS: {text}" + Colors.RESET)
+                        print_banner("!!! THEY NEED HELP !!!", color=Colors.RED)
+                        print(Colors.CYAN + "1. Intervene" + Colors.WHITE + " (Start Crisis Mode)")
+                        print(Colors.CYAN + "2. Walk away" + Colors.WHITE + " (Stress +10)")
+                        if input(Colors.PINK + "> " + Colors.RESET) == "1":
                             handle_crisis(player, client)
                         else:
                             player.stress += 10
                             print("You walk away.")
                     else:
-                        print("1. Hang out (-Stress, +Trust)")
-                        if input("> ") == "1":
+                        print(Colors.GREEN + f"\nSTATUS: {text}" + Colors.RESET)
+                        print(Colors.CYAN + "1. Hang out" + Colors.WHITE + " (-Stress, +Trust)")
+                        if input(Colors.PINK + "> " + Colors.RESET) == "1":
                             player.relax(10)
                             player.update_client_relationship(client.name, trust_change=1, set_cooldown=3)
-                            print("You vibe. It helps.")
+                            print(Colors.GREEN + "You vibe. It helps." + Colors.RESET)
+                            input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
         elif choice == "5":
-            print("\n" + "="*50)
-            print("CASELOAD MANIFEST")
-            print("="*50)
+            clear_screen()
+            print_banner("CASELOAD MANIFEST", color=Colors.PINK)
+            print(f"{Colors.TEAL}{'NAME':<15} | {'LOC':<15} | {'STATUS':<10} | {'NOTE'}{Colors.RESET}")
+            print_separator(width=60, color=Colors.PINK)
             for c in game_state.client_roster.clients.values():
                 status = c.mood.upper()
                 loc = c.neighborhood
                 cd = player.get_client_cooldown(c.name)
                 note = f"CD: {cd}" if cd > 0 else "READY"
-                print(f"{c.name:<15} | {loc:<15} | {status:<10} | {note}")
-            print("="*50)
-            print(f"Billable Hours Pending: {player.billable_hours}")
+
+                status_color = Colors.RED if status == "CRISIS" else Colors.GREEN
+                print(f"{c.name:<15} | {loc:<15} | {status_color}{status:<10}{Colors.RESET} | {note}")
+            print_separator(width=60, color=Colors.PINK)
+            print(f"Billable Hours Pending: {Colors.YELLOW}{player.billable_hours}{Colors.RESET}")
+            input(Colors.BRIGHT_BLACK + "\n[Press Enter]" + Colors.RESET)
 
         elif choice == "6":
-            print("\nINVENTORY:")
+            print_banner("INVENTORY", color=Colors.PINK)
             for item in player.inventory:
-                print(f"- {item.name if hasattr(item, 'name') else item}")
+                print(f" {Colors.MAGENTA}*{Colors.RESET} {item.name if hasattr(item, 'name') else item}")
+            input(Colors.BRIGHT_BLACK + "\n[Press Enter]" + Colors.RESET)
 
         elif choice == "7" and curr_loc_name == "The Center":
             if player.billable_hours > 0:
@@ -434,12 +500,15 @@ def main_game():
                 payout = economy.calculate_payout(player.billable_hours)
                 player.modify_money(payout)
                 player.billable_hours = 0
-                print(f"You received ${payout:.2f}.")
+                print(f"You received {Colors.YELLOW}${payout:.2f}{Colors.RESET}.")
             else:
                 print("You have no hours to bill. Get back to work.")
+            input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
         elif choice == "8" and player.has_item("Ancient Coffee") and player.has_item("Forbidden Form 1040-X") and curr_loc_name == "Downtown":
+             print(Colors.MAGENTA + ASCII_ART['KENNEDY'] + Colors.RESET)
              pantheon.summon_kennedy(player)
+             input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
 if __name__ == "__main__":
     main_game()

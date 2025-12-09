@@ -71,3 +71,36 @@ RANDOM_ENCOUNTERS = [
     "Someone says 'Ope' as they bump into you. You both apologize for five minutes.",
     "You smell yeast. It's either the brewery or the lake. You decide not to investigate."
 ]
+
+ASCII_ART = {
+    "TITLE": r"""
+    .   *   ..  . *  *
+   *  ~  ~  ~  ~  ~  *   .
+  .  /\_/\   CASE WORKER   /\_/\  .
+    ( o.o )  CREAM CITY   ( o.o )
+     > ^ <   CHRONICLES    > ^ <
+   *  ~  ~  ~  ~  ~  *
+      .  *  .  .  *
+""",
+    "GAME_OVER": r"""
+   ~*~*~*~*~*~*~*~*~*~*~*~*~*~
+     G A M E   O V E R
+   You moved to Madison.
+   (It's nicer, but boring)
+   ~*~*~*~*~*~*~*~*~*~*~*~*~*~
+""",
+    "COMBAT": r"""
+      /!\  CRISIS MODE  /!\
+     (ง •̀_•́)ง   FIGHT!   (ง •̀_•́)ง
+""",
+    "KENNEDY": r"""
+       .+.   THE SORCERESS   .+.
+      (o o)     KENNEDY     (o o)
+       \-/   ADMIN OVERRIDE  \-/
+""",
+    "MILVERINE": r"""
+      \m/   THE LEGEND    \m/
+       |    MILVERINE      |
+      / \   WALKS AMONG US / \
+"""
+}
