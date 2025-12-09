@@ -1,6 +1,7 @@
 import random
 import time
 import pantheon
+import economy
 
 # --- THE SACRED TEXTS ---
 def play_intro():
@@ -268,7 +269,8 @@ def resolve_crisis(player, client):
                 if player.check_milverine_save():
                     client.resolve_crisis() # Saved by Milverine counts as resolved? Maybe not.
                     return
-        except: pass
+        except Exception as e:
+            print(f"Error in crisis resolution: {e}")
 
     if player.is_alive():
         print("Crisis Resolved.")
@@ -276,8 +278,8 @@ def resolve_crisis(player, client):
         print(f"Billed {billable_hours} hours to The Center...")
         payment = economy.calculate_payout(billable_hours)
         player.exp += 50
-        player.modify_money(loot)
-        print(f"You billed the state for ${loot}.")
+        player.modify_money(payment)
+        print(f"You billed the state for ${payment}.")
         client.resolve_crisis()
 
 # --- THE EXPANSIVE MAP (UPDATED) ---
@@ -404,138 +406,147 @@ def main_game():
         if "Ancient Coffee" in player.inventory and "Forbidden Form 1040-X" in player.inventory:
             print("6. !!! SUMMON KENNEDY !!!")
 
-        choice = input("> ")
-        
-        if choice == "1":
-            roll = random.randint(1, 100)
-            if roll >= 95: 
-                print("\n*** THE MILVERINE WALKS PAST. YOU ARE BLESSED. ***")
-                player.blessed_by_milverine = True
-                player.stress = 0
-            elif roll >= 85:
-                pantheon.invoke_freeway(player)
-            elif roll < 10:
-                print("\n*** ENCOUNTER: TUMBLEWEAVE ***")
-                print("A weave blows past you like a western movie. It's majestic.")
-            elif roll < 30:
-                print("\n*** ENCOUNTER: KIA BOYS ***")
-                print("A car drives on the sidewalk. You dodge. Stress +10.")
-                player.stress += 10
-            elif roll < 50:
-                print("\n*** ENCOUNTER: CONSTRUCTION ***")
-                print("The road is closed. It has been closed since 2004.")
-                player.stress += 5
-            else:
-                print(f"You walk through {player.current_location}. You see a 'Re-Elect Tom Barrett' sticker fading on a light pole.")
+        try:
+            choice = input("> ")
 
-        elif choice == "2":
-            dests = curr['neighbors']
-            for i, d in enumerate(dests): print(f"{i+1}. {d}")
-            try: 
-                c = int(input("> ")) - 1
-                if 0 <= c < len(dests):
-                    print("Waiting for the bus...")
-                    economy.update_market_vibes()
+            if choice == "1":
+                roll = random.randint(1, 100)
+                if roll >= 95:
+                    print("\n*** THE MILVERINE WALKS PAST. YOU ARE BLESSED. ***")
+                    player.blessed_by_milverine = True
+                    player.stress = 0
+                elif roll >= 85:
+                    pantheon.invoke_freeway(player)
+                elif roll < 10:
+                    print("\n*** ENCOUNTER: TUMBLEWEAVE ***")
+                    print("A weave blows past you like a western movie. It's majestic.")
+                elif roll < 30:
+                    print("\n*** ENCOUNTER: KIA BOYS ***")
+                    print("A car drives on the sidewalk. You dodge. Stress +10.")
+                    player.stress += 10
+                elif roll < 50:
+                    print("\n*** ENCOUNTER: CONSTRUCTION ***")
+                    print("The road is closed. It has been closed since 2004.")
+                    player.stress += 5
+                else:
+                    print(f"You walk through {player.current_location}. You see a 'Re-Elect Tom Barrett' sticker fading on a light pole.")
 
-                    if random.random() > 0.8:
-                        print("The bus is late. Obviously.")
-                        player.stress += 5
+            elif choice == "2":
+                dests = curr['neighbors']
+                for i, d in enumerate(dests): print(f"{i+1}. {d}")
+                try:
+                    c = int(input("> ")) - 1
+                    if 0 <= c < len(dests):
+                        print("Waiting for the bus...")
+                        economy.update_market_vibes()
 
-                    # Pothole Index affects travel comfort
-                    if economy.POTHOLE_INDEX > 1.5:
-                        print("Due to massive potholes, the bus bounces violently. +2 Stress")
-                        player.stress += 2
+                        if random.random() > 0.8:
+                            print("The bus is late. Obviously.")
+                            player.stress += 5
 
-                    player.current_location = dests[c]
-                    player.modify_money(-2.25)
-            except: pass
+                        # Pothole Index affects travel comfort
+                        if economy.POTHOLE_INDEX > 1.5:
+                            print("Due to massive potholes, the bus bounces violently. +2 Stress")
+                            player.stress += 2
 
-        elif choice == "3":
-            lms = curr.get('landmarks', [])
-            for i, l in enumerate(lms): print(f"{i+1}. {l}")
-            try:
-                target = lms[int(input("> "))-1]
+                        player.current_location = dests[c]
+                        player.modify_money(-2.25)
+                except (ValueError, IndexError):
+                     print("You missed the bus.")
 
-                if target == "El Trucko":
-                     el_trucko.update_hype()
-                     menu_items = el_trucko.display_menu() # returns list of (item, price)
+            elif choice == "3":
+                lms = curr.get('landmarks', [])
+                for i, l in enumerate(lms): print(f"{i+1}. {l}")
+                try:
+                    target = lms[int(input("> "))-1]
 
-                     sel = int(input("Order > "))-1
-                     name, price = menu_items[sel]
+                    if target == "El Trucko":
+                         el_trucko.update_hype()
+                         menu_items = el_trucko.display_menu() # returns list of (item, price)
 
-                     if player.money >= price:
-                         player.modify_money(-price)
-                         player.heal(10)
-                         player.relax(5)
-                         print(f"You ate {name}. It was trendy.")
-                     else:
-                         print("Too expensive for your budget.")
+                         sel = int(input("Order > "))-1
+                         name, price = menu_items[sel]
 
-                elif target in landmark_menus:
-                    menu = landmark_menus[target]
-                    print(f"--- {target.upper()} ---")
-                    items = list(menu.items())
-                    for i, (k, v) in enumerate(items):
-                        price = v[0]
-                        # Gentrification Meter affects Coffee
-                        if "Coffee" in k:
+                         if player.money >= price:
+                             player.modify_money(-price)
+                             player.heal(10)
+                             player.relax(5)
+                             print(f"You ate {name}. It was trendy.")
+                         else:
+                             print("Too expensive for your budget.")
+
+                    elif target in landmark_menus:
+                        menu = landmark_menus[target]
+                        print(f"--- {target.upper()} ---")
+                        items = list(menu.items())
+                        for i, (k, v) in enumerate(items):
+                            price = v[0]
+                            # Gentrification Meter affects Coffee
+                            if "Coffee" in k:
+                                price = round(price * economy.GENTRIFICATION_METER, 2)
+                            # Cheese Index affects any food with "Cheese", "Curd", "Pizza", "Burger"
+                            elif any(x in k for x in ["Cheese", "Curd", "Pizza", "Burger"]):
+                                price = round(price * economy.CHEESE_INDEX, 2)
+
+                            print(f"{i+1}. {k} (${price})")
+
+                        sel = int(input("Order > "))-1
+                        name, vals = items[sel]
+
+                        price = vals[0]
+                        if "Coffee" in name:
                             price = round(price * economy.GENTRIFICATION_METER, 2)
-                        # Cheese Index affects any food with "Cheese", "Curd", "Pizza", "Burger"
-                        elif any(x in k for x in ["Cheese", "Curd", "Pizza", "Burger"]):
+                        elif any(x in name for x in ["Cheese", "Curd", "Pizza", "Burger"]):
                             price = round(price * economy.CHEESE_INDEX, 2)
 
-                        print(f"{i+1}. {k} (${price})")
-                    
-                    sel = int(input("Order > "))-1
-                    name, vals = items[sel]
-                    
-                    price = vals[0]
-                    if "Coffee" in name:
-                        price = round(price * economy.GENTRIFICATION_METER, 2)
-                    elif any(x in name for x in ["Cheese", "Curd", "Pizza", "Burger"]):
-                        price = round(price * economy.CHEESE_INDEX, 2)
+                        if player.money >= price:
+                            player.modify_money(-price)
+                            player.heal(vals[1])
+                            player.relax(vals[2])
+                            if "Coffee" in name or "Form" in name or "Override" in name:
+                                player.inventory.append(name)
+                            print(f"You consumed {name}. {vals[3]}")
+                        else: print("Card Declined. Awkward.")
+                except (ValueError, IndexError):
+                    print("You stare at the menu but order nothing.")
 
-                    if player.money >= price:
-                        player.modify_money(-price)
-                        player.heal(vals[1])
-                        player.relax(vals[2])
-                        if "Coffee" in name or "Form" in name or "Override" in name:
-                            player.inventory.append(name)
-                        print(f"You consumed {name}. {vals[3]}")
-                    else: print("Card Declined. Awkward.")
-            except: pass
-
-        elif choice == "4":
-            clients_in_loc = curr['clients']
-            if not clients_in_loc: print("No clients live here.")
-            else:
-                client_name = clients_in_loc[0]
-                client = player.caseload.get_client(client_name)
-                
-                print(f"Visiting {client.name}...")
-                print(f"\nSTATUS: {client.current_scenario_text}")
-
-                if client.status == "Crisis":
-                    print("!!! THEY NEED HELP !!!")
-                    print("1. Intervene (Start Crisis Mode)")
-                    print("2. Walk away (Stress +10)")
-                    if input("> ") == "1":
-                        resolve_crisis(player, client)
-                    else:
-                        player.stress += 10
-                        print("You walk away, feeling the guilt of a thousand case workers.")
+            elif choice == "4":
+                clients_in_loc = curr['clients']
+                if not clients_in_loc: print("No clients live here.")
                 else:
-                    print("1. Hang out (-Stress)")
-                    if input("> ") == "1":
-                        player.relax(10)
-                        print("You vibe. It helps.")
+                    client_name = clients_in_loc[0]
+                    client = player.caseload.get_client(client_name)
 
-        elif choice == "5":
-elif choice == "5":
-            player.caseload.print_manifest()
+                    print(f"Visiting {client.name}...")
+                    print(f"\nSTATUS: {client.current_scenario_text}")
 
-        elif choice == "6":
-            # Use the cleaner logic from the pantheon module
-            pantheon.summon_kennedy(player)
+                    if client.status == "Crisis":
+                        print("!!! THEY NEED HELP !!!")
+                        print("1. Intervene (Start Crisis Mode)")
+                        print("2. Walk away (Stress +10)")
+                        if input("> ") == "1":
+                            resolve_crisis(player, client)
+                        else:
+                            player.stress += 10
+                            print("You walk away, feeling the guilt of a thousand case workers.")
+                    else:
+                        print("1. Hang out (-Stress)")
+                        if input("> ") == "1":
+                            player.relax(10)
+                            print("You vibe. It helps.")
+
+            elif choice == "5":
+                player.caseload.print_manifest()
+
+            elif choice == "6":
+                # Use the cleaner logic from the pantheon module
+                pantheon.summon_kennedy(player)
+
+        except KeyboardInterrupt:
+            print("\nYou give up. The system wins.")
+            break
+        except Exception as e:
+            print(f"An error occurred: {e}")
+
 if __name__ == "__main__":
     main_game()
