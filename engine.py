@@ -1,32 +1,73 @@
 from typing import List, Dict, Any, Optional
+import random
 
 class Item:
-    """Base class for inventory items."""
-    def __init__(self, name: str, description: str, value: float = 0.0):
+    """
+    Base class for inventory items.
+    Supports properties defined in devdoc.txt (HP/Stress effects).
+    """
+    def __init__(self, name: str, description: str, value: float = 0.0, hp_restore: int = 0, stress_relief: int = 0):
         self.name = name
         self.description = description
         self.value = value
+        self.hp_restore = hp_restore
+        self.stress_relief = stress_relief
 
     def __repr__(self):
-        return f"<Item: {self.name}>"
+        return f"<Item: {self.name} (Value: ${self.value})>"
+
+class Client:
+    """
+    Represents a client in the game.
+    Tracks persistent state like mood (Chill/Crisis) as per TODO 1.3.
+    """
+    def __init__(self, name: str, neighborhood: str, mood: str = "Chill"):
+        self.name = name
+        self.neighborhood = neighborhood
+        self.mood = mood # "Chill" or "Crisis"
+
+    def set_mood(self, mood: str):
+        if mood in ["Chill", "Crisis"]:
+            self.mood = mood
+
+class ClientRoster:
+    """
+    Manages the list of clients and their states.
+    TODO 1.3: Saves state between visits.
+    """
+    def __init__(self):
+        self.clients: Dict[str, Client] = {}
+
+    def add_client(self, client: Client):
+        self.clients[client.name] = client
+
+    def get_client(self, name: str) -> Optional[Client]:
+        return self.clients.get(name)
+
+    def get_clients_in_neighborhood(self, neighborhood: str) -> List[Client]:
+        return [c for c in self.clients.values() if c.neighborhood == neighborhood]
 
 class GameState:
     """
     Persists world variables and global state.
-    Tracks turn count, economy modifiers (The Vibe Index), and neighborhood states.
+    Tracks turn count, economy modifiers (The Vibe Index), neighborhood states, and the Client Roster.
+    TODO 1.1: Central GameState object.
     """
     def __init__(self):
         self.turn_count = 0
 
-        # The Vibe Index - Economy Modifiers
+        # TODO 2.3: The Vibe Index - Economy Modifiers
         self.global_economy_modifier = {
             "Cheese_Index": 1.0,         # Affects food prices
             "Pothole_Index": 1.0,        # Affects travel costs
             "Gentrification_Meter": 1.0  # Raises prices in specific neighborhoods
         }
 
-        # Track local events in neighborhoods
+        # Track local events in neighborhoods (TODO 1.1)
         self.neighborhood_states: Dict[str, Dict[str, Any]] = {}
+
+        # TODO 1.3: Client Persistence
+        self.client_roster = ClientRoster()
 
     def advance_turn(self):
         """Advances the game turn and updates world state."""
@@ -53,6 +94,7 @@ class GameState:
 class Player:
     """
     Tracks player stats including 'Billable Hours' and object-based inventory.
+    TODO 1.2: Stateful Player Class.
     """
     def __init__(self, name: str):
         self.name = name
@@ -65,16 +107,18 @@ class Player:
 
         # Economy & Progression
         self.money = 60.00
-        self.billable_hours = 0.0  # Tracks unpaid work instead of just money
+        self.billable_hours = 0.0  # TODO 1.2: Track unpaid work
         self.exp = 0
 
         # World State
         self.current_location = "Downtown"
-        self.inventory: List[Any] = [] # Supports Object instances
+        self.inventory: List[Any] = [] # TODO 1.2: Support Object instances
 
         # Relationships & Status
-        self.client_relationships: Dict[str, Dict[str, Any]] = {} # e.g. {'Chloe': {'trust': 10, 'cooldown': 0}}
-        self.blessed_by_milverine = False
+        # TODO 1.2: Track cooldowns and relationship levels per client
+        self.client_relationships: Dict[str, Dict[str, Any]] = {}
+
+        self.blessed_by_milverine = False # Lore integration
 
     def is_alive(self) -> bool:
         return self.hp > 0 and self.stress < self.max_stress
@@ -109,11 +153,7 @@ class Player:
         self.money += amount
         # Satire: Overdraft fees exist
         if self.money < 0:
-            # We don't print here to avoid side effects in logic,
-            # but in the main loop this should trigger a message.
-            # Ideally, the engine shouldn't print, but returns status or logs.
-            # For now, we mimic the original behavior but keep it clean.
-            pass
+            pass # Handling logic would be in game loop/controller
 
     def heal(self, amount: int):
         self.hp = min(self.max_hp, self.hp + amount)
@@ -135,3 +175,11 @@ class Player:
         for client in self.client_relationships:
             if self.client_relationships[client]['cooldown'] > 0:
                 self.client_relationships[client]['cooldown'] -= 1
+
+    def get_client_cooldown(self, client_name: str) -> int:
+        """Returns the current cooldown for a client."""
+        return self.client_relationships.get(client_name, {}).get('cooldown', 0)
+
+    def get_client_trust(self, client_name: str) -> int:
+        """Returns the current trust level for a client."""
+        return self.client_relationships.get(client_name, {}).get('trust', 0)
