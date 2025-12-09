@@ -531,7 +531,6 @@ def main_game():
                         print("You vibe. It helps.")
 
         elif choice == "5":
-elif choice == "5":
             player.caseload.print_manifest()
 
         elif choice == "6":
