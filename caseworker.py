@@ -1,6 +1,12 @@
 import random
 import time
+import sys
 import pantheon
+import economy
+import combat
+from engine import Player, GameState, Client, Item
+from world_data import MILWAUKEE_MAP, TravelCost
+from text_assets import CLIENT_SCENARIOS, LANDMARK_FLAVOR, RANDOM_ENCOUNTERS
 
 # --- THE SACRED TEXTS ---
 def play_intro():
@@ -15,6 +21,7 @@ def play_intro():
     time.sleep(2)
 
 # --- THE MENUS (SATIRE EDITION) ---
+# Global instance for the food truck so state persists (hype)
 el_trucko = economy.FoodTruck("El Trucko", {"Street Tacos": 3.50, "Elotes": 4.00, "Jarritos": 2.50})
 
 landmark_menus = {
@@ -56,353 +63,184 @@ landmark_menus = {
     }
 }
 
-# --- CLIENT SYSTEM ---
-class Client:
-    def __init__(self, name, location, chill_scenarios, crisis_scenarios, enemy_data):
-        self.name = name
-        self.location = location
-        self.chill_scenarios = chill_scenarios
-        self.crisis_scenarios = crisis_scenarios
-        self.enemy_data = enemy_data
+# --- INITIALIZATION HELPER ---
+def init_game_state(player):
+    """
+    Initializes the GameState and populates the ClientRoster based on TEXT_ASSETS and MILWAUKEE_MAP.
+    """
+    gs = GameState()
 
-        # State
-        self.status = "Chill" # or "Crisis"
-        self.cooldown = 0
-        self.current_scenario_text = self._get_random_text(self.chill_scenarios)
+    # Map clients to neighborhoods based on world_data or text_assets
+    # world_data.py doesn't list clients explicitly in the dict structure in the latest read,
+    # but caseworker.py had them hardcoded.
+    # text_assets.py has the scenarios.
 
-    def _get_random_text(self, scenarios):
-        # scenarios is a list of tuples (State, Text) or just strings?
-        # Looking at original code: ("Chill", "Text")
-        # So we just want the text part
-        return random.choice([s[1] for s in scenarios])
+    # We need to reconstruct the roster.
+    # Based on the original caseworker.py:
+    # Chloe -> Polonia
+    # Bobbie -> West Allis
+    # Liam -> Bay View
+    # Mrs. Higgins -> Sherman Park
+    # Tyler -> East Side
 
-    def update_turn(self):
-        if self.cooldown > 0:
-            self.cooldown -= 1
-            if self.cooldown == 0:
-                # Cooldown expired.
-                pass # Ready for new crisis?
+    # Let's use the keys from CLIENT_SCENARIOS
+    client_locs = {
+        "Chloe": "Polonia",
+        "Bobbie": "West Allis",
+        "Liam": "Bay View",
+        "Mrs. Higgins": "Sherman Park",
+        "Tyler": "East Side"
+    }
 
-        # If chill and no cooldown, small chance to go crisis
-        if self.status == "Chill" and self.cooldown == 0:
-            if random.random() < 0.2: # 20% chance per turn
-                self.trigger_crisis()
+    for name, loc in client_locs.items():
+        c = Client(name, loc, "Chill")
+        gs.client_roster.add_client(c)
 
-    def trigger_crisis(self):
-        self.status = "Crisis"
-        self.current_scenario_text = self._get_random_text(self.crisis_scenarios)
+    return gs
 
-    def resolve_crisis(self):
-        self.status = "Chill"
-        self.cooldown = random.randint(3, 6) # Safe for a few turns
-        self.current_scenario_text = self._get_random_text(self.chill_scenarios)
+def get_client_enemy_data(client_name):
+    """
+    Returns the enemy data for a specific client (reconstructed from original caseworker.py).
+    """
+    if client_name == "Chloe":
+        return {"name": "Sentient Roomba", "hp": 50, "weakness": "Logic"}
+    elif client_name == "Bobbie":
+        return {"name": "The Ticket Demon", "hp": 60, "weakness": "Paperwork"}
+    elif client_name == "Liam":
+        return {"name": "The Sourdough Monster", "hp": 45, "weakness": "Apathy"}
+    elif client_name == "Mrs. Higgins":
+        return {"name": "The City Inspector", "hp": 80, "weakness": "Paperwork"}
+    elif client_name == "Tyler":
+        return {"name": "The Looming Deadline", "hp": 40, "weakness": "Logic"}
+    return {"name": "Generic Bureaucrat", "hp": 50, "weakness": "Paperwork"}
 
-    def get_info_line(self):
-        status_color = "CRITICAL" if self.status == "Crisis" else "STABLE"
-        cd_text = f"(CD: {self.cooldown})" if self.cooldown > 0 else "(READY)"
-        return f"[{status_color}] {self.name} ({self.location}) {cd_text}"
+def get_client_scenarios(client_name, mood):
+    """
+    Returns the list of scenarios for a client based on mood from TEXT_ASSETS.
+    """
+    scenarios = CLIENT_SCENARIOS.get(client_name, [])
+    # Filter by mood (Tuple: (Mood, Text))
+    return [s[1] for s in scenarios if s[0] == mood]
 
-class Caseload:
-    def __init__(self):
-        self.clients = {}
-        self._init_clients()
+# --- GAME LOOP ACTIONS ---
 
-    def _init_clients(self):
-        # Define clients here (moved from get_client_scenario)
+def handle_crisis(player, client):
+    """
+    Handles the crisis combat loop.
+    """
+    enemy_data = get_client_enemy_data(client.name)
+    enemy = combat.Enemy(enemy_data["name"], combat.Enemy.TYPE_STONEWALLER, enemy_data["hp"])
+    # Determine enemy type based on weakness/lore (Satire)
+    if enemy_data['weakness'] == 'Logic': enemy.type = combat.Enemy.TYPE_STONEWALLER # Bureaucrats hate logic
+    elif enemy_data['weakness'] == 'Apathy': enemy.type = combat.Enemy.TYPE_AGGRESSOR # Emotionals hate apathy
+    elif enemy_data['weakness'] == 'Paperwork': enemy.type = combat.Enemy.TYPE_DRAINER # Paperwork drains you
 
-        # Chloe
-        self.clients["Chloe"] = Client(
-            "Chloe", "Polonia",
-            [("Chill", "Chloe is eating pierogis while coding on a laptop from 1999."),
-             ("Chill", "Chloe is in the basement trying to rewire the Basilica's bells.")],
-            [("Crisis", "Chloe accidentally hacked the Mayor's fridge and the Feds are outside."),
-             ("Crisis", "Chloe's homemade server farm melted the fuse box.")],
-            {"name": "Sentient Roomba", "hp": 50, "weakness": "Logic"}
-        )
-
-        # Bobbie
-        self.clients["Bobbie"] = Client(
-            "Bobbie", "West Allis",
-            [("Chill", "Bobbie is polishing his Dale Earnhardt commemorative plates."),
-             ("Chill", "Bobbie is asleep in a recliner from 1985.")],
-            [("Crisis", "Bobbie is fighting a 'Demon' in his closet (it's unpaid parking tickets)."),
-             ("Crisis", "Bobbie bought 400lbs of birdseed on QVC and is trapped.")],
-            {"name": "The Ticket Demon", "hp": 60, "weakness": "Paperwork"}
-        )
-
-        # Liam
-        self.clients["Liam"] = Client(
-            "Liam", "Bay View",
-            [("Chill", "Liam is waxing his mustache and listening to a band that doesn't exist yet."),
-             ("Chill", "Liam offers you a deconstructed coffee. It's just beans and hot water separately.")],
-            [("Crisis", "Liam's sourdough starter has grown too large and is consuming the kitchen."),
-             ("Crisis", "Liam is having a panic attack because he saw someone wearing cargo shorts.")],
-            {"name": "The Sourdough Monster", "hp": 45, "weakness": "Apathy"}
-        )
-
-        # Mrs. Higgins
-        self.clients["Mrs. Higgins"] = Client(
-            "Mrs. Higgins", "Sherman Park",
-            [("Chill", "Mrs. Higgins feeds you sweet potato pie until you can't move."),
-             ("Chill", "Mrs. Higgins is watching her stories (Soap Operas) at max volume.")],
-            [("Crisis", "The City hasn't fixed the pothole in front of her house. She is ready for war."),
-             ("Crisis", "Her grandson installed 'The TikTok' on her phone and she is confused.")],
-            {"name": "The City Inspector", "hp": 80, "weakness": "Paperwork"}
-        )
-
-        # Tyler
-        self.clients["Tyler"] = Client(
-            "Tyler", "East Side",
-            [("Chill", "Tyler is playing hacky-sack. It is 2025. You are confused."),
-             ("Chill", "Tyler is asleep in the library. He has drooled on a textbook.")],
-            [("Crisis", "Tyler has to write a 40-page thesis by tomorrow. He hasn't started."),
-             ("Crisis", "Tyler forgot to pay his tuition and is about to be expelled.")],
-            {"name": "The Looming Deadline", "hp": 40, "weakness": "Logic"}
-        )
-
-    def get_client(self, name):
-        return self.clients.get(name)
-
-    def update_all(self):
-        for client in self.clients.values():
-            client.update_turn()
-
-    def print_manifest(self):
-        print("\n" + "="*50)
-        print("COUNTY CASELOAD MANIFEST (CONFIDENTIAL)")
-        print("SYSTEM STATUS: OVERBURDENED")
-        print("="*50)
-        print(f"{'CLIENT':<15} | {'LOC':<15} | {'STATUS':<10} | {'NOTES'}")
-        print("-" * 70)
-        for name, c in self.clients.items():
-            status = c.status.upper()
-            note = "NEEDS VISIT" if status == "CRISIS" else "Monitoring..."
-            if c.cooldown > 0: note = f"Safe for {c.cooldown} turns"
-            print(f"{name:<15} | {c.location:<15} | {status:<10} | {note}")
-        print("="*50)
-        print("Use 'Visit Client' to intervene.\n")
-
-
-# --- PLAYER CLASS ---
-class Player:
-    def __init__(self, name):
-        self.name = name
-        self.hp = 100
-        self.max_hp = 100
-        self.stress = 0
-        self.max_stress = 100
-        self.money = 60.00
-        self.exp = 0
-        self.current_location = "Downtown"
-        self.inventory = [] 
-        self.blessed_by_milverine = False 
-        self.caseload = Caseload() # Player has a caseload now
-
-    def is_alive(self):
-        return self.hp > 0 and self.stress < self.max_stress
-
-    def check_milverine_save(self):
-        # Delegate to pantheon module
-        return pantheon.check_milverine_intervention(self)
-
-    def modify_money(self, amount):
-        self.money += amount
-        if self.money < 0:
-            print("   -> BANK ALERT: Overdraft ($35). Being poor is expensive.")
-            self.money -= 35
-
-    def heal(self, amount):
-        self.hp = min(self.max_hp, self.hp + amount)
-
-    def relax(self, amount):
-        self.stress = max(0, self.stress - amount)
-
-# --- COMBAT / CRISIS SYSTEM ---
-def resolve_crisis(player, client):
-    enemy = client.enemy_data
-    print(f"\n--- CONFRONTING: {enemy['name']} ---")
-    enemy_hp = enemy['hp']
+    print(f"\n--- CONFRONTING: {enemy.name} ---")
     
-    if "Administrative Override" in player.inventory:
+    # Kennedy Check
+    if player.has_item("Administrative Override"):
         print("\n[?] Invoke Kennedy's ADMINISTRATIVE OVERRIDE? (y/n)")
         if input("> ") == "y":
             print("\n*** KENNEDY'S WRATH ***")
             print("A giant spectral rubber stamp descends from the sky.")
             print("IT READS: 'NOT MY PROBLEM'.")
-            print(f"The {enemy['name']} is instantly filed away.")
-            player.inventory.remove("Administrative Override")
+            print(f"The {enemy.name} is instantly filed away.")
+            player.remove_item("Administrative Override")
             player.exp += 50
-            client.resolve_crisis() # Success
+            client.set_mood("Chill")
             return
 
-    while enemy_hp > 0 and player.is_alive():
-        print(f"Enemy Intensity: {enemy_hp} | Stress: {player.stress}")
+    # Combat Loop
+    while enemy.is_alive() and player.is_alive():
+        print(f"Enemy HP: {enemy.hp} | Your Stress: {player.stress}")
         print("1. Malicious Compliance (Use rules against them)")
         print("2. Weaponized Apathy (Stare blankly)")
         print("3. Bureaucratic Jargon (Confuse them)")
+        print("4. 'The Ope' (Dodge)")
+        print("5. Contextual Move")
         
         try:
             choice = input("> ")
-            damage = 0
-            flavor = ""
+            move = ""
+            if choice == "1": move = combat.MOVE_MALICIOUS_COMPLIANCE
+            elif choice == "2": move = combat.MOVE_WEAPONIZED_APATHY
+            elif choice == "3": move = combat.MOVE_JARGON_OVERLOAD
+            elif choice == "4": move = combat.MOVE_THE_OPE
+            elif choice == "5": move = combat.MOVE_CONTEXTUAL
             
-            if choice == "1":
-                damage = random.randint(15, 25)
-                flavor = "You cite a regulation from 1974. It's super effective."
-                if enemy['weakness'] == "Paperwork": damage *= 2
-            elif choice == "2":
-                damage = random.randint(5, 15)
-                flavor = "You sigh aggressively. The enemy feels awkward."
-                if enemy['weakness'] == "Apathy": damage *= 2
-            elif choice == "3":
-                damage = random.randint(10, 20)
-                flavor = "You say 'Circle Back' and 'Synergy' until their ears bleed."
-                if enemy['weakness'] == "Logic": damage *= 2
-            
-            print(f"> {flavor}")
-            enemy_hp -= damage
-            
-            if enemy_hp > 0:
-                print(f"> {enemy['name']} strikes back! Stress +10")
-                player.stress += 10
-                if player.check_milverine_save():
-                    client.resolve_crisis() # Saved by Milverine counts as resolved? Maybe not.
-                    return
-        except: pass
+            if move:
+                combat.resolve_turn(player, enemy, move)
+
+                # Check for Milverine Save if player died/stressed out in that turn
+                if not player.is_alive():
+                     if pantheon.check_milverine_intervention(player):
+                         # If saved, combat might continue or end?
+                         # Let's say it gives you a second wind.
+                         print("You get back up!")
+            else:
+                print("You stumbled and did nothing.")
+        except Exception as e:
+            print(f"Error: {e}")
 
     if player.is_alive():
         print("Crisis Resolved.")
-        billable_hours = random.randint(3, 8)
-        print(f"Billed {billable_hours} hours to The Center...")
-        payment = economy.calculate_payout(billable_hours)
+        billable = random.randint(3, 8)
+        print(f"Billed {billable} hours to The Center... (Submit Timesheet at The Center to get paid)")
+        player.add_billable_hours(billable)
         player.exp += 50
-        player.modify_money(loot)
-        print(f"You billed the state for ${loot}.")
-        client.resolve_crisis()
+        client.set_mood("Chill")
+        # Set cooldown
+        player.update_client_relationship(client.name, trust_change=1, set_cooldown=5)
 
-# --- THE EXPANSIVE MAP (UPDATED) ---
-milwaukee_map = {
-    "Downtown": {
-        "desc": "Skyscrapers, sadness, and the Library.",
-        "neighbors": ["East Side", "Riverwest", "Walker's Point", "Third Ward", "Near West Side"],
-        "landmarks": ["The Safe House", "Central Library", "El Trucko"],
-        "clients": []
-    },
-    "Third Ward": {
-        "desc": "Expensive condos and boutiques you are too poor to enter.",
-        "neighbors": ["Downtown", "Walker's Point"],
-        "landmarks": ["Milwaukee Public Market", "Wicked Hop"],
-        "clients": []
-    },
-    "Riverwest": {
-        "desc": "Alleys, art, anarchy, and very tight pants.",
-        "neighbors": ["East Side", "Downtown", "Bronzeville"],
-        "landmarks": ["Falcon Bowl", "Art Bar"],
-        "clients": [] # Chloe moved!
-    },
-    "Polonia": {
-        "desc": "The historic South Side. The Basilica looms over everything. Smells like incense and old bricks.",
-        "neighbors": ["Walker's Point", "Bay View"],
-        "landmarks": ["Basilica of St. Josaphat", "Kosciuszko Park"],
-        "clients": ["Chloe"] # Chloe is here now
-    },
-    "Walker's Point": {
-        "desc": "Industrial chic. Smells like chocolate or sewage.",
-        "neighbors": ["Downtown", "Bay View", "Third Ward", "Polonia"],
-        "landmarks": ["Sobelman's", "Conejito's Place"],
-        "clients": []
-    },
-    "Bay View": {
-        "desc": "Hipster parents pushing $800 strollers.",
-        "neighbors": ["Walker's Point", "Polonia"],
-        "landmarks": ["The Vanguard", "Small Pie"],
-        "clients": ["Liam"]
-    },
-    "East Side": {
-        "desc": "Impossible parking. UWM students. The scent of Lake Michigan.",
-        "neighbors": ["Downtown", "Riverwest"],
-        "landmarks": ["Wolski's", "Ma Fischer's"],
-        "clients": ["Tyler"]
-    },
-    "Near West Side": {
-        "desc": "Marquette University and the highway.",
-        "neighbors": ["Downtown", "Speed Queen Area", "Bronzeville"],
-        "landmarks": ["Real Chili", "The Rave"],
-        "clients": []
-    },
-    "Speed Queen Area": {
-        "desc": "The air here smells like smoked meat. It is holy ground.",
-        "neighbors": ["Near West Side", "Sherman Park", "Bronzeville"],
-        "landmarks": ["Speed Queen BBQ"],
-        "clients": []
-    },
-    "Sherman Park": {
-        "desc": "Historic homes and beautiful boulevards.",
-        "neighbors": ["Speed Queen Area", "Wauwatosa"],
-        "landmarks": ["Sherman Phoenix"],
-        "clients": ["Mrs. Higgins"]
-    },
-    "West Allis": {
-         "desc": "Stallis. The land of honest people and questionable lawn ornaments.",
-         "neighbors": ["Wauwatosa", "Hales Corners"],
-         "landmarks": ["West Allis Cheese Shoppe"],
-         "clients": ["Bobbie"]
-    },
-    "Wauwatosa": {
-        "desc": "The suburbs. It's quiet. Too quiet.",
-        "neighbors": ["Sherman Park", "West Allis"],
-        "landmarks": ["Gilles Frozen Custard"],
-        "clients": []
-    },
-    "Hales Corners": {
-        "desc": "Southwest side. Neon lights glow in the distance.",
-        "neighbors": ["West Allis"],
-        "landmarks": ["Leon's Frozen Custard"],
-        "clients": []
-    },
-    "Bronzeville": {
-        "desc": "Culture, business, and history.",
-        "neighbors": ["Riverwest", "Near West Side", "Speed Queen Area"],
-        "landmarks": ["Gee's Clippers"],
-        "clients": []
-    },
-    "The Center": {
-        "desc": "The Coggs Center. The heart of darkness.",
-        "neighbors": ["Downtown"],
-        "landmarks": [],
-        "clients": [],
-        "danger_bonus": 20
-    }
-}
-
-# --- MAIN LOOP ---
 def main_game():
     play_intro()
     p_name = input("Enter Case Worker Name: ")
     player = Player(p_name)
+    game_state = init_game_state(player)
     
     while True:
         if not player.is_alive():
-            if not player.check_milverine_save(): 
+            if not pantheon.check_milverine_intervention(player):
                 print("GAME OVER. You moved to Madison.")
                 break
 
-        # Update clients every turn
-        player.caseload.update_all()
+        # Update World State
+        game_state.advance_turn()
+        player.decrement_cooldowns()
 
-        curr = milwaukee_map[player.current_location]
-        print(f"\nLOC: {player.current_location.upper()} | HP: {player.hp} | STRESS: {player.stress}")
-        if "Administrative Override" in player.inventory: print("STATUS: PROTECTED BY KENNEDY")
+        # Check Client Random Crisis
+        for client in game_state.client_roster.clients.values():
+            if client.mood == "Chill" and player.get_client_cooldown(client.name) == 0:
+                if random.random() < 0.2: # 20% chance
+                    client.set_mood("Crisis")
+
+        curr_loc_name = player.current_location
+        curr_loc_data = MILWAUKEE_MAP.get(curr_loc_name)
+
+        if not curr_loc_data:
+            print(f"Error: Unknown location {curr_loc_name}. Teleporting to Downtown.")
+            player.current_location = "Downtown"
+            continue
+
+        print(f"\nLOC: {curr_loc_name.upper()} | HP: {player.hp} | STRESS: {player.stress} | MONEY: ${player.money:.2f}")
+        if player.has_item("Administrative Override"): print("STATUS: PROTECTED BY KENNEDY")
         if player.blessed_by_milverine: print("STATUS: BLESSED BY THE MILVERINE")
         
-        print(f"DESC: {curr['desc']}")
+        print(f"DESC: {curr_loc_data['description']}")
         print("1. Explore (Risk Encounter)")
         print("2. Travel")
         print("3. Visit Landmark")
         print("4. Visit Client")
-        print("5. View Caseload (Client Info)")
-        if "Ancient Coffee" in player.inventory and "Forbidden Form 1040-X" in player.inventory:
-            print("6. !!! SUMMON KENNEDY !!!")
+        print("5. View Caseload")
+        print("6. Inventory")
+
+        # Special Location Actions
+        if curr_loc_name == "The Center":
+            print("7. Submit Timesheet")
+
+        # Kennedy Summon check
+        if player.has_item("Ancient Coffee") and player.has_item("Forbidden Form 1040-X") and curr_loc_name == "Downtown": # Assuming Library is Downtown
+             print("8. !!! SUMMON KENNEDY !!!")
 
         choice = input("> ")
         
@@ -414,127 +252,194 @@ def main_game():
                 player.stress = 0
             elif roll >= 85:
                 pantheon.invoke_freeway(player)
-            elif roll < 10:
-                print("\n*** ENCOUNTER: TUMBLEWEAVE ***")
-                print("A weave blows past you like a western movie. It's majestic.")
-            elif roll < 30:
-                print("\n*** ENCOUNTER: KIA BOYS ***")
-                print("A car drives on the sidewalk. You dodge. Stress +10.")
-                player.stress += 10
-            elif roll < 50:
-                print("\n*** ENCOUNTER: CONSTRUCTION ***")
-                print("The road is closed. It has been closed since 2004.")
-                player.stress += 5
+            elif roll < 20:
+                encounter = random.choice(RANDOM_ENCOUNTERS)
+                print(f"\n*** ENCOUNTER ***\n{encounter}")
+                if "Kia Boys" in encounter: player.stress += 10
+                if "Bridge" in encounter: player.stress += 5
             else:
-                print(f"You walk through {player.current_location}. You see a 'Re-Elect Tom Barrett' sticker fading on a light pole.")
+                print(f"You walk through {curr_loc_name}. Nothing weird happens (yet).")
 
         elif choice == "2":
-            dests = curr['neighbors']
+            dests = curr_loc_data['neighbors']
             for i, d in enumerate(dests): print(f"{i+1}. {d}")
             try: 
-                c = int(input("> ")) - 1
+                c_input = input("Destination > ")
+                c = int(c_input) - 1
                 if 0 <= c < len(dests):
-                    print("Waiting for the bus...")
-                    economy.update_market_vibes()
+                    target = dests[c]
+                    print("Choose Transport:")
+                    modes = list(TravelCost.MODES.keys())
+                    for i, m in enumerate(modes):
+                        cost_info = TravelCost.MODES[m]
+                        print(f"{i+1}. {m} (${cost_info['cost']}) - {cost_info['description']}")
 
-                    if random.random() > 0.8:
-                        print("The bus is late. Obviously.")
-                        player.stress += 5
+                    m_idx = int(input("Transport > ")) - 1
+                    mode_name = modes[m_idx]
+                    mode_data = TravelCost.MODES[mode_name]
 
-                    # Pothole Index affects travel comfort
-                    if economy.POTHOLE_INDEX > 1.5:
-                        print("Due to massive potholes, the bus bounces violently. +2 Stress")
-                        player.stress += 2
+                    # Logic
+                    if player.money < mode_data['cost']:
+                        print("Not enough money.")
+                    else:
+                        player.modify_money(-mode_data['cost'])
+                        stress_add = random.randint(mode_data['stress_min'], mode_data['stress_max'])
 
-                    player.current_location = dests[c]
-                    player.modify_money(-2.25)
-            except: pass
+                        # Apply Global Modifiers
+                        economy.update_market_vibes()
+                        if economy.POTHOLE_INDEX > 1.5 and mode_name in ["Bus", "Uber", "Hooptie"]:
+                             print("The potholes are terrible today. +2 Stress.")
+                             stress_add += 2
+
+                        player.stress += stress_add
+                        print(f"You take the {mode_name}. Stress +{stress_add}.")
+
+                        if mode_name == "Hooptie":
+                            if random.random() < mode_data['breakdown_chance']:
+                                print("The car broke down. You have to walk the rest of the way. +10 Stress.")
+                                player.stress += 10
+
+                        player.current_location = target
+            except ValueError:
+                print("Invalid input. Please enter a number.")
+            except Exception as e:
+                print(f"An error occurred during travel: {e}")
 
         elif choice == "3":
-            lms = curr.get('landmarks', [])
-            for i, l in enumerate(lms): print(f"{i+1}. {l}")
-            try:
-                target = lms[int(input("> "))-1]
+            # Landmarks
+            # Note: world_data structure for landmark is a string "landmark", not a list.
+            lm = curr_loc_data.get('landmark')
+            if not lm:
+                print("No major landmark here.")
+            else:
+                print(f"Landmark: {lm}")
+                desc = LANDMARK_FLAVOR.get(lm, "It's a place.")
+                print(desc)
 
-                if target == "El Trucko":
+                # Check for menu
+                if lm == "El Trucko":
                      el_trucko.update_hype()
-                     menu_items = el_trucko.display_menu() # returns list of (item, price)
+                     menu_items = el_trucko.display_menu()
+                     try:
+                         sel = int(input("Order > "))-1
+                         name, price = menu_items[sel]
+                         if player.money >= price:
+                             player.modify_money(-price)
+                             player.heal(10)
+                             player.relax(5)
+                             print(f"You ate {name}.")
+                         else: print("Too expensive.")
+                     except: pass
 
-                     sel = int(input("Order > "))-1
-                     name, price = menu_items[sel]
-
-                     if player.money >= price:
-                         player.modify_money(-price)
-                         player.heal(10)
-                         player.relax(5)
-                         print(f"You ate {name}. It was trendy.")
-                     else:
-                         print("Too expensive for your budget.")
-
-                elif target in landmark_menus:
-                    menu = landmark_menus[target]
-                    print(f"--- {target.upper()} ---")
+                elif lm in landmark_menus:
+                    menu = landmark_menus[lm]
+                    print(f"--- {lm.upper()} ---")
                     items = list(menu.items())
                     for i, (k, v) in enumerate(items):
                         price = v[0]
-                        # Gentrification Meter affects Coffee
+                         # Gentrification Meter affects Coffee
                         if "Coffee" in k:
                             price = round(price * economy.GENTRIFICATION_METER, 2)
                         # Cheese Index affects any food with "Cheese", "Curd", "Pizza", "Burger"
                         elif any(x in k for x in ["Cheese", "Curd", "Pizza", "Burger"]):
                             price = round(price * economy.CHEESE_INDEX, 2)
 
-                        print(f"{i+1}. {k} (${price})")
+                        print(f"{i+1}. {k} (${price:.2f})")
                     
-                    sel = int(input("Order > "))-1
-                    name, vals = items[sel]
-                    
-                    price = vals[0]
-                    if "Coffee" in name:
-                        price = round(price * economy.GENTRIFICATION_METER, 2)
-                    elif any(x in name for x in ["Cheese", "Curd", "Pizza", "Burger"]):
-                        price = round(price * economy.CHEESE_INDEX, 2)
+                    try:
+                        sel = int(input("Order > "))-1
+                        name, vals = items[sel]
+                        price = vals[0]
+                        # Re-calc price for transaction
+                        if "Coffee" in name:
+                            price = round(price * economy.GENTRIFICATION_METER, 2)
+                        elif any(x in name for x in ["Cheese", "Curd", "Pizza", "Burger"]):
+                            price = round(price * economy.CHEESE_INDEX, 2)
 
-                    if player.money >= price:
-                        player.modify_money(-price)
-                        player.heal(vals[1])
-                        player.relax(vals[2])
-                        if "Coffee" in name or "Form" in name or "Override" in name:
-                            player.inventory.append(name)
-                        print(f"You consumed {name}. {vals[3]}")
-                    else: print("Card Declined. Awkward.")
-            except: pass
+                        if player.money >= price:
+                            player.modify_money(-price)
+                            player.heal(vals[1])
+                            player.relax(vals[2])
+                            # Add item object if relevant
+                            if "Coffee" in name or "Form" in name or "Override" in name:
+                                # Create Item object
+                                new_item = Item(name, vals[3], price, vals[1], vals[2])
+                                player.add_item(new_item)
+                            print(f"You consumed {name}. {vals[3]}")
+                        else: print("Card Declined.")
+                    except ValueError:
+                         print("Invalid order.")
+                    except IndexError:
+                         print("Item not found.")
 
         elif choice == "4":
-            clients_in_loc = curr['clients']
-            if not clients_in_loc: print("No clients live here.")
-            else:
-                client_name = clients_in_loc[0]
-                client = player.caseload.get_client(client_name)
-                
-                print(f"Visiting {client.name}...")
-                print(f"\nSTATUS: {client.current_scenario_text}")
+            # Visit Client
+            # Find client in this location
+            # Using the roster to search
+            clients_here = game_state.client_roster.get_clients_in_neighborhood(curr_loc_name)
 
-                if client.status == "Crisis":
-                    print("!!! THEY NEED HELP !!!")
-                    print("1. Intervene (Start Crisis Mode)")
-                    print("2. Walk away (Stress +10)")
-                    if input("> ") == "1":
-                        resolve_crisis(player, client)
-                    else:
-                        player.stress += 10
-                        print("You walk away, feeling the guilt of a thousand case workers.")
+            if not clients_here:
+                print("No clients live here.")
+            else:
+                client = clients_here[0] # Assuming one per loc for now
+                print(f"Visiting {client.name}...")
+
+                # Cooldown check
+                cd = player.get_client_cooldown(client.name)
+                if cd > 0:
+                    print(f"{client.name} is tired of you. Come back in {cd} turns.")
                 else:
-                    print("1. Hang out (-Stress)")
-                    if input("> ") == "1":
-                        player.relax(10)
-                        print("You vibe. It helps.")
+                    # Get Scenario Text
+                    scenarios = get_client_scenarios(client.name, client.mood)
+                    text = random.choice(scenarios) if scenarios else "They are doing nothing."
+                    print(f"\nSTATUS: {text}")
+
+                    if client.mood == "Crisis":
+                        print("!!! THEY NEED HELP !!!")
+                        print("1. Intervene (Start Crisis Mode)")
+                        print("2. Walk away (Stress +10)")
+                        if input("> ") == "1":
+                            handle_crisis(player, client)
+                        else:
+                            player.stress += 10
+                            print("You walk away.")
+                    else:
+                        print("1. Hang out (-Stress, +Trust)")
+                        if input("> ") == "1":
+                            player.relax(10)
+                            player.update_client_relationship(client.name, trust_change=1, set_cooldown=3)
+                            print("You vibe. It helps.")
 
         elif choice == "5":
-            player.caseload.print_manifest()
+            print("\n" + "="*50)
+            print("CASELOAD MANIFEST")
+            print("="*50)
+            for c in game_state.client_roster.clients.values():
+                status = c.mood.upper()
+                loc = c.neighborhood
+                cd = player.get_client_cooldown(c.name)
+                note = f"CD: {cd}" if cd > 0 else "READY"
+                print(f"{c.name:<15} | {loc:<15} | {status:<10} | {note}")
+            print("="*50)
+            print(f"Billable Hours Pending: {player.billable_hours}")
 
         elif choice == "6":
-            # Use the cleaner logic from the pantheon module
-            pantheon.summon_kennedy(player)
+            print("\nINVENTORY:")
+            for item in player.inventory:
+                print(f"- {item.name if hasattr(item, 'name') else item}")
+
+        elif choice == "7" and curr_loc_name == "The Center":
+            if player.billable_hours > 0:
+                print(f"Submitting {player.billable_hours} hours...")
+                payout = economy.calculate_payout(player.billable_hours)
+                player.modify_money(payout)
+                player.billable_hours = 0
+                print(f"You received ${payout:.2f}.")
+            else:
+                print("You have no hours to bill. Get back to work.")
+
+        elif choice == "8" and player.has_item("Ancient Coffee") and player.has_item("Forbidden Form 1040-X") and curr_loc_name == "Downtown":
+             pantheon.summon_kennedy(player)
+
 if __name__ == "__main__":
     main_game()
