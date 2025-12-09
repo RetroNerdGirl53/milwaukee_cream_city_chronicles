@@ -1,57 +1,52 @@
-# DESIGN DOCUMENT: Encounters (The Milwaukee Randomizer & Office Horror)
+# DESIGN DOCUMENT: Encounters (The Caseworker's Reality)
 
-## 1. City Encounters (Milwaukee Specific)
+## 1. The Daily Grind (Office Horror)
 
-### The Hop (Streetcar)
-* **Trigger:** Crossing Downtown.
-* **Text:** "You see The Hop approaching. It is empty. It is always empty. It glides silently like a ghost ship of taxpayer money."
-* **Effect:** You lose 5 minutes (-Time) staring at its majestic emptiness.
+### The Compassion Fatigue
+*   **Trigger:** Helping 3 clients in a row.
+*   **Text:** "You care too much. Your soul feels like a wrung-out sponge. You need a nap or a scream."
+*   **Effect:** Max HP -10 until you visit *The Milverine* or drink *Malort*.
 
-### The Winter Parking Regulations
-* **Trigger:** Nighttime travel.
-* **Text:** "You parked on the wrong side of the street. Or was it the right side? The sign is covered in snow. It is 4 AM."
-* **Effect:** Stress +15. You receive a ticket that costs exactly all the money you have.
+### The Grant Funding Cliff
+*   **Trigger:** Beginning of the Fiscal Year.
+*   **Text:** "The grant that pays your salary was not renewed. You are technically volunteering right now."
+*   **Effect:** Money -50. You gain the 'Anxiety' status effect.
 
-### The Milverine Sighting (Rare)
-* **Trigger:** Travel anywhere.
-* **Text:** "He walks past. Shirtless. Powerful. He is not cold; the cold is afraid of him."
-* **Effect:** Full HP Heal. Stress set to 0. You feel inadequate but inspired.
+### The Printer Jam (Eldritch Edition)
+*   **Trigger:** Trying to print a 'Housing Voucher'.
+*   **Text:** "PC LOAD LETTER. The printer vibrates with malice. It demands a blood sacrifice."
+*   **Effect:** -5 HP (Paper cut). Voucher delayed.
 
-### The Summerfest Traffic
-* **Trigger:** Travel near the Lakefront.
-* **Text:** "You are stuck behind a suburban dad in a minivan who doesn't know where he is going. He is listening to Tom Petty."
-* **Effect:** Skip turn. Stress +5.
-
-### The Frozen Custard Emergency
-* **Trigger:** Passing a Kopp's or Leon's.
-* **Text:** "The Flavor of the Day is 'Red Velvet Oreo'. You cannot resist."
-* **Effect:** -$$ (Money), +HP (Happiness), +Cholesterol (Hidden stat).
+### The Mandatory 'Self-Care' Seminar
+*   **Trigger:** High Stress levels.
+*   **Text:** "Management noticed you are burnt out. Instead of a raise, they bought you a pizza (one slice max) and a webinar on breathing."
+*   **Effect:** Stress +20. Rage +50.
 
 ---
 
-## 2. Office Horror Encounters (Red Tape & Culture)
+## 2. Milwaukee Street Encounters
 
-### The Printer Jam
-* **Trigger:** Trying to complete a "Paperwork" quest.
-* **Text:** "PC LOAD LETTER. What does that even mean? The printer mocks you. It smells fear."
-* **Effect:** Stress +10. You must sacrifice a 'Donut' item to appease the machine.
+### The Hop (The Ghost Train)
+*   **Trigger:** Downtown travel.
+*   **Text:** "The streetcar glides past. It is empty. It is always empty. It is a monument to something, but you aren't sure what."
+*   **Effect:** You lose 10 minutes contemplating urban planning.
 
-### The Reply-All Disaster
-* **Trigger:** Random email check.
-* **Text:** "Susan from HR sent an email about the potluck. 400 people are replying 'Thanks!' or 'Please remove me'."
-* **Effect:** Your phone vibrates uncontrollably. Battery drain. Stress +5 per vibration.
+### The Winter Parking Regulations
+*   **Trigger:** Nighttime (Dec-March).
+*   **Text:** "Is it an odd side night? Even side? 4-inch rule? The sign is covered in gray slush."
+*   **Effect:** 50% chance of getting a $40 ticket.
 
-### The Mandatory Fun Day
-* **Trigger:** Boss interaction.
-* **Text:** "There is cake in the breakroom. The cake is dry. You must smile. Participation is mandatory."
-* **Effect:** Morale -10. You gain the 'Existential Dread' status effect.
+### The Milverine Sighting
+*   **Trigger:** Rare event.
+*   **Text:** "The clouds part. He walks. Shirtless. Powerful. He ignores the wind chill."
+*   **Effect:** *Full Restore.* Your faith in humanity is restored.
 
-### The Compliance Training
-* **Trigger:** Yearly event.
-* **Text:** "You must watch a 45-minute video about password security from 2005. You cannot skip. You cannot speed it up."
-* **Effect:** You fall asleep. Lose 1 turn.
+### The 'ope' Standoff
+*   **Trigger:** Doorway interaction.
+*   **Text:** "You bump into someone. 'Ope,' you say. 'Ope, let me sneak past ya,' they say. Neither moves."
+*   **Effect:** You are stuck in a politeness loop for 2 turns.
 
-### The Phantom Meeting
-* **Trigger:** 12:00 PM Lunch.
-* **Text:** "A calendar invite appears: 'Quick Sync'. It has no agenda. It has no end time."
-* **Effect:** Stress +20. You miss lunch. HP -10.
+### The Summerfest Traffic
+*   **Trigger:** Lakefront travel (Summer).
+*   **Text:** "You are trapped behind a minivan from Illinois. They are turning left where there is no left turn."
+*   **Effect:** Stress +5.

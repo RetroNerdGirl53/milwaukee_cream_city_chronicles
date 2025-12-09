@@ -1,46 +1,74 @@
-# DESIGN DOCUMENT: New Clients & Enemies (Expansion Pack)
+# DESIGN DOCUMENT: Clients & Enemies (Social Work Edition)
 
-## 1. The Developer (Downtown - The Tower)
-* **Vibe:** Gold-plated everything, incoherent rambling, and an obsession with "The Deal."
-* **Chill:** Tweeting on a gold-plated phone. "I have the best tweets. Everyone says so."
-* **Crisis:** "The zoning commission says my building is 'too shiny' and 'blinding pilots'. Total witch hunt!"
-* **Enemy:** *The Former Guy* (Weakness: Subpoenas/Facts - they confuse him).
-* **Flavor Text:** "He builds walls. He builds towers. He mostly builds debt."
+## 1. Clients (The People We Serve)
+*Note: Clients are the heroes. We do not fight them; we fight FOR them. They are struggling with the System.*
 
-## 2. The Secretary (The Center - The Education Dept)
-* **Vibe:** Power suits, wrestling belts, and a complete inability to use spellcheck.
-* **Chill:** Suplexing a filing cabinet. "Education is about... *powerbombs*."
-* **Crisis:** "I tried to write a grant proposal but I spelled 'School' as 'Skool' and now the dictionary is suing me."
-* **Enemy:** *The Wrestling Admin* (Weakness: Spellcheck/Dictionaries).
-* **Flavor Text:** "She didn't come here to play school. She came here to body slam illiteracy (and funding)."
+### Marcus (The Veteran)
+*   **Location:** Near West Side (The VA Hospital perimeter)
+*   **Vibe:** Stoic, tired. Wears a field jacket from a conflict nobody remembers.
+*   **Struggle:** The "Paradox Loop". He needs an ID to get housing, but needs an address to get an ID.
+*   **Crisis:** "The VA's computer system (running Windows 95) has achieved sentience and deleted my service record."
+*   **The Enemy:** *The Red Tape Worm* (Weakness: "Fax Machine" - it loves paper).
 
-## 3. The Consultant (Third Ward - The Co-Working Space)
-* **Vibe:** Vests, expensive coffee, and words that mean nothing.
-* **Chill:** Drawing Venn diagrams on a glass wall. "We need to drill down on the low-hanging fruit."
-* **Crisis:** "I leveraged our synergy so hard that I accidentally created a singularity of pure corporate nonsense."
-* **Enemy:** *The Slide Deck* (Weakness: "Let's take this offline" - stops the attack).
-* **Flavor Text:** "He charges $500 an hour to tell you that water is wet, but 'strategically hydrated'."
+### Sarah (The Neurodivergent Artist)
+*   **Location:** Riverwest
+*   **Vibe:** Brilliant, overwhelmed by fluorescent lights. wears noise-canceling headphones.
+*   **Struggle:** Medicaid Renewal. The form is 40 pages long and asks for her 3rd-grade teacher's blood type.
+*   **Crisis:** "The form... it's screaming at me. And I think I spelled my own name wrong."
+*   **The Enemy:** *The Secretary (Linda)* (Weakness: Spellcheck).
 
-## 4. The Middle Manager (Downtown - The Office Park)
-* **Vibe:** Beige walls, fluorescent skin tone, and a soul crushed by spreadsheets.
-* **Chill:** Micromanaging the way you breathe. "Can you cc me on that inhale?"
-* **Crisis:** "The meeting ran long. It's been 84 years. We are still on Slide 2."
-* **Enemy:** *The Infinite Meeting* (Weakness: "I have a hard stop" - escape immediately).
-* **Flavor Text:** "He doesn't want results. He wants a paper trail explaining why there are no results."
+### Eddie (The Re-Entry Citizen)
+*   **Location:** North Side
+*   **Vibe:** Optimistic but weary. Just wants a job that pays actual money.
+*   **Struggle:** "The Catch-22". Found a job, but it's in the suburbs. The bus doesn't go there. Can't buy a car without the job.
+*   **Crisis:** "My landlord is raising the rent by 500% because he installed a 'luxury' mailbox."
+*   **The Enemy:** *The Developer* (Weakness: Housing Code Violations).
 
-## 5. The Alderman (City Hall)
-* **Vibe:** A mustache that has been in office since 1978.
-* **Chill:** Eating a bratwurst at a ribbon-cutting ceremony for a new stop sign.
-* **Crisis:** "A constituent found a pothole that looks like Elvis and now it's a shrine blocking traffic."
-* **Enemy:** *The NIMBY Mob* (Weakness: Town Hall distractions / "Free Beer").
-* **Flavor Text:** "He knows where the bodies are buried. Mostly because he approved the permits for the cemetery."
+### Grandma Rose (The Elder)
+*   **Location:** South Side (Polonia)
+*   **Vibe:** 85 years old. Tougher than you. Smells like pierogi and mentorship.
+*   **Struggle:** Medicare Part D. She has been on hold for 6 hours.
+*   **Crisis:** "They cut my heating assistance because I have $5 too much in my savings account."
+*   **The Enemy:** *The Efficiency Consultant* (Weakness: Empathy - it burns him).
 
 ---
 
-## Combat Mechanics (New Moves)
+## 2. The Administration (Bosses & Systemic Threats)
 
-**Enemy Moves:**
-1.  **"Fake News":** (The Former Guy) Confuses the player. Inverts controls for 1 turn.
-2.  **" The Chair Shot":** (The Wrestling Admin) High physical damage.
-3.  **"Circle Back":** (The Consultant) Resets the combat loop to the beginning. Infinite loop risk.
-4.  **"Reply All":** (The Middle Manager) Summons 3 generic interns to attack.
+### The Developer (The Landlord King)
+*   **Archetype:** "The Former Guy" / Slumlord Millionaire.
+*   **Appearance:** Orange tan, suit that fits poorly, constantly tweeting on a gold phone.
+*   **Mechanic:** *Gentrification.* He turns low-income housing into "Luxury Dog Hotels" mid-combat.
+*   **Attacks:**
+    *   "The Eviction Notice": High Stress damage.
+    *   "The Wall": Blocks all player attacks for 2 turns.
+    *   "Fake News": Inverts player controls.
+*   **Weakness:** *Subpoenas* and *Facts*. They confuse him into a stun lock.
+
+### The Secretary (The Education Destroyer)
+*   **Archetype:** Linda McMahon Satire / Incompetent Admin.
+*   **Appearance:** Power suit, wrestling championship belt, holding a dictionary upside down.
+*   **Mechanic:** *Deregulate.* She removes helpful items from the player's inventory.
+*   **Attacks:**
+    *   "The Charter School Chop": Physical damage.
+    *   "The Typos": Text on screen becomes garbled (e.g., "Attack" becomes "Attak").
+    *   "Budget Cut": Drains player's money/resources.
+*   **Weakness:** *Dictionaries* and *Spellcheck*. Showing her a correctly spelled word causes critical damage.
+
+### The Efficiency Consultant (The Hatchet Man)
+*   **Archetype:** Private Equity Ghoul.
+*   **Appearance:** Vest, AirPods, dead eyes.
+*   **Mechanic:** *Downsize.* Reduces the player's Max HP.
+*   **Attacks:**
+    *   "Circle Back": Resets the fight to the beginning (Time Loop).
+    *   "Synergy Vampirism": Heals himself by draining your Morale.
+    *   "The Pivot": Changes his elemental weakness every turn.
+*   **Weakness:** *The Union Rep* or *Malicious Compliance*.
+
+### The Red Tape Worm (The Bureaucracy Monster)
+*   **Archetype:** Eldritch Horror made of forms.
+*   **Appearance:** A writhing mass of carbon paper, sticky notes, and hold music.
+*   **Attacks:**
+    *   "Please Hold": Stuns player for 3 turns.
+    *   "Form 1040-X": Mental damage.
+*   **Weakness:** *The Fax Machine*. It is the only technology it respects.
