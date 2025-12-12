@@ -4,6 +4,8 @@ import sys
 import pantheon
 import economy
 import combat
+import crypto_assets
+import os
 from engine import Player, GameState, Client, Item
 from world_data import MILWAUKEE_MAP, TravelCost
 from text_assets import CLIENT_SCENARIOS, LANDMARK_FLAVOR, RANDOM_ENCOUNTERS, ASCII_ART
@@ -32,6 +34,7 @@ def play_intro():
 # --- THE MENUS (SATIRE EDITION) ---
 # Global instance for the food truck so state persists (hype)
 el_trucko = economy.FoodTruck("El Trucko", {"Street Tacos": 3.50, "Elotes": 4.00, "Jarritos": 2.50})
+crypto_mgr = crypto_assets.CryptoManager()
 
 landmark_menus = {
     "Sobelman's": {
@@ -280,6 +283,7 @@ def main_game():
         print(f" {Colors.CYAN}4.{Colors.RESET} Visit Client")
         print(f" {Colors.CYAN}5.{Colors.RESET} View Caseload")
         print(f" {Colors.CYAN}6.{Colors.RESET} Inventory")
+        print(f" {Colors.CYAN}9.{Colors.RESET} Crypto Wallet")
 
         # Special Location Actions
         if curr_loc_name == "The Center":
@@ -422,6 +426,21 @@ def main_game():
                                 # Create Item object
                                 new_item = Item(name, vals[3], price, vals[1], vals[2])
                                 player.add_item(new_item)
+
+                            # CRYPTO REWARD CHECK
+                            if "Closer" in name:
+                                print(Colors.MAGENTA + "\n*** WALLET UPDATE ***" + Colors.RESET)
+                                print("Generating 'I Closed Wolski's' Blockchain Asset...")
+                                token = crypto_mgr.generate_token("I Closed Wolskis", player.name)
+                                fname = f"wolskis_proof_{int(time.time())}.png"
+                                if crypto_mgr.create_image_artifact(token, fname):
+                                    print(Colors.CYAN + f"CRYPTO ASSET MINTED: {fname}" + Colors.RESET)
+                                    print("This image contains cryptographic proof of your achievement.")
+                                    # Store token string in inventory as a text item for now
+                                    player.add_item(Item("Wolski's Token", f"Crypto Proof (File: {fname})", 0, 0, 0))
+                                else:
+                                    print(Colors.RED + "Minting Failed." + Colors.RESET)
+
                             print(Colors.GREEN + f"You consumed {name}. {vals[3]}" + Colors.RESET)
                         else: print(Colors.RED + "Card Declined." + Colors.RESET)
                     except ValueError:
@@ -511,6 +530,33 @@ def main_game():
              print(Colors.MAGENTA + ASCII_ART['KENNEDY'] + Colors.RESET)
              pantheon.summon_kennedy(player)
              input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
+
+        elif choice == "9":
+            clear_screen()
+            print_banner("MILWAUKEE BLOCKCHAIN", color=Colors.MAGENTA)
+            print("1. Verify Image Artifact")
+            print("2. Back")
+            c2 = input("> ")
+            if c2 == "1":
+                print("Enter filename of image (must be in game folder):")
+                fpath = input("> ")
+                if os.path.exists(fpath):
+                    res = crypto_mgr.verify_image_artifact(fpath)
+                    if res and res['valid']:
+                        p = res['payload']
+                        print(Colors.GREEN + "VERIFIED VALID!" + Colors.RESET)
+                        print(f"Item: {p['item']}")
+                        print(f"Owner: {p['owner']}")
+                        print(f"Date: {time.ctime(p['timestamp'])}")
+
+                        # Unlockable Content?
+                        if p['item'] == "I Closed Wolskis":
+                            print(Colors.YELLOW + "\n[!] UNLOCKED CONTENT: 'The Hangover Cure' recipe added to knowledge." + Colors.RESET)
+                    else:
+                        print(Colors.RED + f"INVALID: {res['error']}" + Colors.RESET)
+                else:
+                    print("File not found.")
+                input(Colors.BRIGHT_BLACK + "[Press Enter]" + Colors.RESET)
 
 if __name__ == "__main__":
     main_game()
