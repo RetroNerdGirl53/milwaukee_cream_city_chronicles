@@ -129,3 +129,5 @@ SECTION 6: LORE & FLAVOR
         - Burner Phone (Chloe).
         - Mystery Stew (Mrs. Higgins).
         - Dale Earnhardt Keychain (Bobbie).
+    - Implement cryptographic hash or blockchain based items in game that can be displayed outside of the game
+	- the sticker from wolskis will be our first example of this. There can be multiple copies of this, each unique in and out of game. Outside of game needs to be either verifiable without the use of a normal client server model. The dev docs and dev plan does not include provisions for a server system. Block chain may be a good option for this, or some sort of cryptographic token individuals can verify offline.

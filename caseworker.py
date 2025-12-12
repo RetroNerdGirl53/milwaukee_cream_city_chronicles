@@ -67,7 +67,7 @@ landmark_menus = {
         "Forbidden Form 1040-X": (10.00, 0, 0, "A tax amendment from 1994. Ritual item.")
     },
     "Wolski's": {
-        "The Closer": (7.00, 0, 20, "You get a sticker that says you survived."),
+        "The Closer": (7.00, 0, 20, "You stay until the bar closes. You get a sticker that says you survived."),
         "Popcorn": (0.00, 2, 0, "It's free and salty.")
     }
 }
