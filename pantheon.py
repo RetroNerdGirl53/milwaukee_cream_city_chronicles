@@ -1,7 +1,7 @@
 import random
 import time
 
-def check_milverine_intervention(player):
+def check_milverine_intervention(player, reputation_414: int = 0):
     """
     Checks if the Player needs saving (HP <= 0 or Stress >= 100).
     5% chance The Milverine intervenes.
@@ -10,10 +10,11 @@ def check_milverine_intervention(player):
     # Check trigger conditions
     if player.hp <= 0 or player.stress >= player.max_stress:
 
-        # Determine success: 5% chance OR pre-existing blessing
+        # Determine success: 5% base (+3% at 25+ rep) OR pre-existing blessing
         is_blessed = getattr(player, 'blessed_by_milverine', False)
+        chance = 5 + (3 if reputation_414 >= 25 else 0)
         roll = random.randint(1, 100)
-        success = (roll <= 5) or is_blessed
+        success = (roll <= chance) or is_blessed
 
         if success:
             print("\n" + "!"*50)
@@ -94,3 +95,56 @@ def invoke_freeway(player):
     else:
         player.stress = max(0, player.stress - heal_stress)
     print(f"Your Stress decreases by {heal_stress}. You feel like a Champion.")
+
+
+def invoke_despair_dan(player):
+    """Ma Fischer's regular — gave up on Hoan Bridge geometry, eats pancakes instead."""
+    print("\n" + "-" * 40)
+    print("Despair Dan slides into the booth across from you.")
+    print("'I used to come here to jump,' he says, stabbing a pancake.")
+    print("'Then they put up that fence. Can't figure the angles.'")
+    print("He shrugs. 'Pancakes are easier.'")
+    print("-" * 40)
+    player.relax(15)
+    player.heal(5)
+    print("Stress -15. HP +5. Existential clarity +1.")
+
+
+def invoke_polish_moon(player):
+    """South Side beacon — cheap drinks, cheaper wisdom."""
+    print("\n" + "~" * 40)
+    print("The Polish Moon sign glows like a lighthouse for the lost.")
+    print("A stranger buys you a shot. 'You're gonna make it,' they say.")
+    print("They don't know your caseload. It still helps.")
+    print("~" * 40)
+    player.relax(12)
+    print("Stress -12. The Moon remembers everyone.")
+
+
+def invoke_rave_ghost(player):
+    """
+    The Rave basement — Francis Wren, Jack, or Buddy Holly chooses you.
+    """
+    roll = random.randint(1, 100)
+    print("\n" + "░" * 44)
+    print("THE BASEMENT POOL AREA OF THE RAVE / EAGLES CLUB")
+    print("Chlorine. Concrete. Sharpie tags from bands who made it.")
+    print("░" * 44)
+
+    if roll <= 40:
+        print("\nA cold spot. Orbs of light. The story of Francis Wren, 1927, hangs in the air.")
+        print("You leave an offering: a silent nod. Milwaukee nods back.")
+        player.stress += 8
+    elif roll <= 70:
+        print("\nA spectral voice — Jack? — mutters: 'GET OUT.'")
+        print("You get out. You are a case worker, not a ghost hunter.")
+        player.stress += 15
+        player.hp = max(1, player.hp - 3)
+    else:
+        print("\nFor three seconds you hear a guitar. Friendly. Winter Dance Party energy.")
+        print("If that's Buddy Holly, he's nicer than the overseer ghost.")
+        player.relax(18)
+        player.heal(8)
+
+    print("You surface to Wisconsin Ave. A teen in a band shirt asks if you felt it.")
+    print("You say 'Ope' and walk away.")

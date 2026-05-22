@@ -66,6 +66,16 @@ class GameState:
         # Track local events in neighborhoods (TODO 1.1)
         self.neighborhood_states: Dict[str, Dict[str, Any]] = {}
 
+        # 414 reputation — unlocks better random outcomes
+        self.reputation_414: int = 0
+
+        # Side quests: quest_id -> list of completed step ids
+        self.quest_progress: Dict[str, List[str]] = {}
+        self.active_quest: Optional[str] = None
+
+        # Global story flags (boat removed, etc.)
+        self.flags: Dict[str, bool] = {}
+
         # TODO 1.3: Client Persistence
         self.client_roster = ClientRoster()
 
@@ -119,6 +129,10 @@ class Player:
         self.client_relationships: Dict[str, Dict[str, Any]] = {}
 
         self.blessed_by_milverine = False # Lore integration
+
+        # Tallboy / held item (Milwaukee street beverage meta)
+        self.held_item: Optional[str] = None
+        self.tallboy_state: Optional[Dict[str, Any]] = None  # phase, blocks_walked, people_talked
 
     def is_alive(self) -> bool:
         return self.hp > 0 and self.stress < self.max_stress

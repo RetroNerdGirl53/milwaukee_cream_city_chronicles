@@ -7,17 +7,17 @@ SECTION 1: CORE ARCHITECTURE & STATE
 [ASSIGNED TO: AGENT ALPHA (Systems Architect)]
 =============================================================================
 
-[ ] 1.1 IMPLEMENT GAMESTATE CLASS
+[x] 1.1 IMPLEMENT GAMESTATE CLASS
     - Create a central `GameState` object to persist world data.
     - Track `turn_count`, `global_economy_modifier` (The Vibe Index).
     - Implement `neighborhood_states` dictionary to track local events (e.g., "Street Festival in Riverwest").
 
-[ ] 1.2 REFACTOR PLAYER CLASS FOR STATEFULNESS
+[x] 1.2 REFACTOR PLAYER CLASS FOR STATEFULNESS
     - Add `self.billable_hours` (Float) to track unpaid work.
     - Add `self.client_relationships` (Dict) to track cooldowns and relationship levels per client.
     - Ensure `inventory` can hold Object instances (Classes), not just Strings.
 
-[ ] 1.3 IMPLEMENT CLIENT PERSISTENCE
+[x] 1.3 IMPLEMENT CLIENT PERSISTENCE
     - Create a `ClientRoster` that saves state between visits.
     - Implement `cooldown_turns`: Visiting a client locks them for 5 turns.
     - Implement `mood_state`: Client stays in "Crisis" or "Chill" until interacted with.
@@ -27,18 +27,18 @@ SECTION 2: ECONOMY & BUREAUCRACY
 [ASSIGNED TO: AGENT GAMMA (Mechanics Engineer)]
 =============================================================================
 
-[ ] 2.1 IMPLEMENT "RED TAPE" ECONOMY
+[x] 2.1 IMPLEMENT "RED TAPE" ECONOMY
     - Remove cash rewards from Client encounters.
     - Add logic: Solving a crisis grants `billable_hours` (Standard: 1.5, Hazard: 2.0).
     - Add logic: `XP` is granted immediately, but Cash is deferred.
 
-[ ] 2.2 IMPLEMENT "THE TIMESHEET" MECHANIC
+[x] 2.2 IMPLEMENT "THE TIMESHEET" MECHANIC
     - Update "The Center" (Coggs Center) location menu.
     - Add action: "Submit Timesheet".
     - Logic: Convert `billable_hours` to `money` ($15/hr base).
     - Logic: 20% chance of "Bureaucratic Rejection" (Player gets 50% pay due to "formatting errors").
 
-[ ] 2.3 IMPLEMENT "GLOBAL VIBE INDEX"
+[x] 2.3 IMPLEMENT "GLOBAL VIBE INDEX"
     - Create `update_economy()` function that runs every morning.
     - Variable: `Cheese_Index` (Affects food prices).
     - Variable: `Pothole_Index` (Affects travel costs).
@@ -49,7 +49,7 @@ SECTION 3: NAVIGATION & WORLD
 [ASSIGNED TO: AGENT ALPHA & AGENT GAMMA]
 =============================================================================
 
-[ ] 3.1 THE COMMUTE ENGINE (Navigation 2.0)
+[x] 3.1 THE COMMUTE ENGINE (Navigation 2.0)
     - Convert map to a Weighted Graph.
     - Create `travel_menu()` that offers modes of transport:
         a. Bus ($2.25, High Stress Variance, Slow).
@@ -57,7 +57,7 @@ SECTION 3: NAVIGATION & WORLD
         c. Hooptie (Free, Fast, 10% Breakdown Risk).
         d. Walking (Free, Slow, Health/Stress impacts based on season).
 
-[ ] 3.2 MAP EXPANSION
+[x] 3.2 MAP EXPANSION
     - Update `milwaukee_map` to include "Polonia" (South Side).
     - Move NPC `Chloe` residence from Riverwest to Polonia.
     - Ensure proper neighbor connections (Polonia <-> Walker's Point <-> Bay View).
@@ -67,25 +67,25 @@ SECTION 4: THE SENTIENT SOURDOUGH (COMPANION SYSTEM)
 [ASSIGNED TO: AGENT GAMMA (Mechanics) & AGENT BETA (Narrative)]
 =============================================================================
 
-[ ] 4.1 CREATE SENTIENTSOURDOUGH CLASS [AGENT GAMMA]
+[x] 4.1 CREATE SENTIENTSOURDOUGH CLASS [AGENT GAMMA]
     - Properties: `generation` (0-2), `form` (String), `stickiness` (Infinite).
     - Logic: `is_cursed` flag preventing Drop/Sell actions.
     - Logic: `mutate()` function triggers every 10-15 turns.
 
-[ ] 4.2 IMPLEMENT MUTATION MECHANICS [AGENT GAMMA]
+[x] 4.2 IMPLEMENT MUTATION MECHANICS [AGENT GAMMA]
     - "The Puddle": 5% chance to slide to random neighbor node.
     - "The Partner": Sets Player Status to "It's Complicated".
     - "The Compass": Unlocks "The Bread Dimension" (Fast Travel point).
     - "The Void": Enables spectral sight (Visual flavor text only).
     - "The Homunculus": Consumes 1 food item from inventory daily.
 
-[ ] 4.3 IMPLEMENT MITOSIS & RECOMBINATION [AGENT GAMMA]
+[x] 4.3 IMPLEMENT MITOSIS & RECOMBINATION [AGENT GAMMA]
     - Reproduction: Gen 0 produces 2 babies; Gen 1 produces 2 babies; Gen 2 is sterile.
     - Recombination: If Inventory full OR 20 turns pass -> Merge all into "The Elder Loaf".
     - "Elder Loaf" Effect: Weight 50lbs (Disable "Run" and "Fast Travel").
     - Reset Quest: Deliver Elder Loaf to Liam (Bay View) to reset cycle.
 
-[ ] 4.4 SOURDOUGH NARRATIVE EVENTS [AGENT BETA]
+[x] 4.4 SOURDOUGH NARRATIVE EVENTS [AGENT BETA]
     - Write dialogue for "The Critic" (Insults player purchases).
     - Write dialogue for "The Oracle" (Player understands pigeons/squirrels).
     - Write "Date Night" scenario at The Vanguard (If Form == "The Partner").
@@ -96,13 +96,13 @@ SECTION 5: AI & COMBAT (SATIRE SYSTEM)
 [ASSIGNED TO: AGENT DELTA (AI Logic)]
 =============================================================================
 
-[ ] 5.1 IMPLEMENT BEHAVIOR TREES
+[x] 5.1 IMPLEMENT BEHAVIOR TREES
     - Create Enemy Types:
         a. "The Stonewaller" (DMV Clerk) -> Uses Blocks/Delays.
         b. "The Aggressor" (Kia Boy) -> High DPS.
         c. "The Drainer" (Energy Vampire) -> Drains XP/Billable Hours.
 
-[ ] 5.2 IMPLEMENT SATIRICAL COMBAT MOVES
+[x] 5.2 IMPLEMENT SATIRICAL COMBAT MOVES
     - Replace "Attack" with "Malicious Compliance" (Crit vs Stonewaller).
     - Replace "Defend" with "The Ope" (Dodge).
     - Replace "Magic" with "Jargon Overload" (Crit vs Drainer).
@@ -113,21 +113,97 @@ SECTION 6: LORE & FLAVOR
 [ASSIGNED TO: AGENT BETA (Writer)]
 =============================================================================
 
-[ ] 6.1 THE PANTHEON INTEGRATION
+[x] 6.1 THE PANTHEON INTEGRATION
     - Hardcode "The Milverine" trigger: 5% chance on 0 HP/100 Stress to full heal.
     - Hardcode "Kennedy" Summoning: Requires `Ancient Coffee` + `Form 1040-X` at Central Library.
     - Write text for "Administrative Override" (Instant Win item).
 
-[ ] 6.2 NPC SCENARIOS
+[x] 6.2 NPC SCENARIOS
     - Update `Chloe` (Polonia): Hacking the Basilica bells / Mayor's fridge.
     - Update `Bobbie` (West Allis): Fighting the "Ticket Demon".
     - Update `Mrs. Higgins` (Sherman Park): War with City Inspector.
     - Update `Liam` (Bay View): Sourdough origin story.
 
-[ ] 6.3 CLIENT REWARDS
+[x] 6.3 CLIENT REWARDS
     - Implement "Weird Gratitude" loot tables (No cash):
         - Burner Phone (Chloe).
         - Mystery Stew (Mrs. Higgins).
         - Dale Earnhardt Keychain (Bobbie).
     - Implement cryptographic hash or blockchain based items in game that can be displayed outside of the game
-	- the sticker from wolskis will be our first example of this. There can be multiple copies of this, each unique in and out of game. Outside of game needs to be either verifiable without the use of a normal client server model. The dev docs and dev plan does not include provisions for a server system. Block chain may be a good option for this, or some sort of cryptographic token individuals can verify offline.
+	- the sticker from wolskis will be our first example of this. There can be multiple copies of this, each unique in and out of game. Outside of game needs to be either verifiable without the use of a normal client server model. Block chain may be a good option for this, or some sort of cryptographic token individuals can verify offline.
+
+=============================================================================
+SECTION 7: NEW MECHANICS (BACKLOG / FUTURE IDEAS)
+[ASSIGNED TO: AGENT CHLOE (Developer in Training)]
+=============================================================================
+
+[ ] 7.1 THE TALLBOY MECHANIC
+    Location: Add "Stop N Rob" convenience store to Polonia (near Basilica).
+    
+    CORE CONCEPT:
+    Satire of Milwaukee dudes walking around with paper-bagged tallboys at 10am.
+    Everyone knows what's in the bag. The bag fools nobody.
+    
+    BASIC IMPLEMENTATION (V1):
+    - Buy tallboy at Stop N Rob -> held in hand (not inventory)
+    - Must carry paper bag visibly
+    - Cannot put in backpack (it's a hand item)
+    - 1-2 NPCs force you to open it (Mrs. Higgins?)
+    - Once opened: must walk 3+ blocks AND talk to 5+ people before disposal
+    - Effects: HP -2, Stress -15 (simple one-time)
+    
+    ENHANCED IMPLEMENTATION (V2 - FUTURE):
+    The Milwaukee Curve - phased effects over time:
+    
+    Phase 1 - "The Purchase":
+        - Fresh in bag, walking around
+        - NPC reactions vary (Bobbie: respect, The Center: write-up)
+    
+    Phase 2 - "First Sips" (opening the bag):
+        - Immediate: HP -2, Stress -5
+        - Status: "Drinking in public"
+    
+    Phase 3 - "The Buzz" (after 2 blocks walked):
+        - HP +0, Stress -15
+        - The sweet spot - everything feels manageable
+    
+    Phase 4 - "Peak Drunk" (after talking to someone while buzzed):
+        - HP +5, Stress -10
+        - Overconfidence. You text your ex. You apply for jobs you're not qualified for.
+    
+    Phase 5 - "The Crash" (after 5 more blocks):
+        - HP -5, Stress +20
+        - Reality returns. The warmth fades. You remember your caseload.
+    
+    Phase 6 - "The Empty" (can now dispose):
+        - "Recycle" or "Pour one out for the dead homies"
+        - Return to normal, but with a slight headache
+    
+    TECHNICAL NOTES:
+    - Requires `player.held_item` separate from inventory
+    - Track `tallboy.blocks_walked` and `tallboy.people_talked`
+    - State machine: FRESH -> SIPPING -> BUZZED -> PEAK -> CRASHING -> EMPTY
+    - Consider second tallboy delaying the crash (authentic Milwaukee behavior)
+
+[ ] 7.2 MAP FIXES
+    - Fix "The Center" <-> "Downtown" to be bidirectional (currently one-way)
+    - Add "Safe House" and "Conejito's Place" to actual neighborhoods
+    - Consider adding "Silver City" neighborhood (6th & Oklahoma area)
+
+[ ] 7.3 ADDITIONAL CRYPTO TOKENS
+    - Tumbleweave Slayer token (already defined, needs supply limit enforcement)
+    - Fish Fry Certificate (implemented, works)
+    - Consider: "Survived Winter" token, "Parked During Snow Emergency" token
+
+=============================================================================
+COMPLETED SECTIONS
+=============================================================================
+
+[x] Save/Load System - JSON serialization working
+[x] Crypto Token System - SHA-256 offline verification
+[x] Inventory System - Full item management
+[x] Sourdough System - All 7 forms, reproduction, Elder Loaf
+[x] Tumbleweave Boss - 3-phase battle, scissors weakness
+[x] Fish Fry Friday - Certificate minting
+
+=============================================================================
